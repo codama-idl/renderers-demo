@@ -74,10 +74,10 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/codama-idl/codama"
+        "url": "https://github.com/codama-idl/renderers-demo"
     },
     "bugs": {
-        "url": "http://github.com/codama-idl/codama/issues"
+        "url": "http://github.com/codama-idl/renderers-demo/issues"
     },
     "browserslist": [
         "supports bigint and not dead",
