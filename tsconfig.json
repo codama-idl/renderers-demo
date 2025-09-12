@@ -1,7 +1,24 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
-    "compilerOptions": { "lib": [] },
+    "compilerOptions": {
+        "composite": false,
+        "declaration": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "inlineSources": false,
+        "isolatedModules": true,
+        "lib": [],
+        "moduleResolution": "node",
+        "noFallthroughCasesInSwitch": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "preserveWatchOutput": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "ESNext"
+    },
     "display": "@codama/renderers-demo",
-    "extends": "../../tsconfig.json",
-    "include": ["src", "test"]
+    "include": ["src", "test", "tsup.config.ts"],
+    "exclude": ["node_modules"]
 }
