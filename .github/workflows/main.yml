@@ -9,7 +9,6 @@ env:
   # Among other things, opts out of Turborepo telemetry. See https://consoledonottrack.com/.
   DO_NOT_TRACK: '1'
   NODE_VERSION: 20
-  SOLANA_VERSION: 2.1.9
 
 jobs:
   lint:
