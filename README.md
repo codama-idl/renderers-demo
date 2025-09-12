@@ -21,7 +21,6 @@ Add the following script to your Codama configuration file.
 
 ```json
 {
-    // ...
     "scripts": {
         "demo": {
             "from": "@codama/renderers-demo",
