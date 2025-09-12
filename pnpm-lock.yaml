@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@codama/errors':
         specifier: ^1.3.5
-        version: 1.3.5
+        version: 1.3.6
       '@codama/nodes':
         specifier: ^1.3.5
         version: 1.3.5
@@ -307,8 +307,15 @@ packages:
     resolution: {integrity: sha512-v+xgA7X7RMVWPlOXQqsusCFVPmIEQAMgx5tuRgwsqv6c9ksmowIUWhw+PZbf/d8XbU0vC1TViFb70kOku5xXJg==}
     hasBin: true
 
+  '@codama/errors@1.3.6':
+    resolution: {integrity: sha512-pWP42vregNgFGKY/hF4ifyfSL8FfYNnd0fKXjxP3IUX9HS7+T1CcfgfJ7St9YI6C77LpFPWmx+68Af4DGnAhKA==}
+    hasBin: true
+
   '@codama/node-types@1.3.5':
     resolution: {integrity: sha512-qm1JJbtsI6rO1mEpuenuQcqAzqWlRCv5LQvRSIGZXombBhNlbqK14EzB5unXJPVMlNas5mDP0TKgGWmWba6J9g==}
+
+  '@codama/node-types@1.3.6':
+    resolution: {integrity: sha512-n9BpPh/Kl6Z6Bbt1MtsKykAtdPKljoBm4T8ea1IL9ABdFs+wnvgZBxnIAhgM0hC82AtvQPNGezXzLTER1JZpyg==}
 
   '@codama/nodes@1.3.5':
     resolution: {integrity: sha512-SEnGT/cQyGLxsyxvwoNmF7t8rwWG6P/8hzpfpZkd9M20bnUYt3kgZx6gjRaAhFMuwoCGWwGsJOtXjSC3DaA4Bw==}
@@ -3267,7 +3274,15 @@ snapshots:
       chalk: 5.6.2
       commander: 14.0.1
 
+  '@codama/errors@1.3.6':
+    dependencies:
+      '@codama/node-types': 1.3.6
+      commander: 14.0.1
+      picocolors: 1.1.1
+
   '@codama/node-types@1.3.5': {}
+
+  '@codama/node-types@1.3.6': {}
 
   '@codama/nodes@1.3.5':
     dependencies:
