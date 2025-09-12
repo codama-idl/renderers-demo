@@ -1,5 +1,11 @@
 # @codama/renderers-demo
 
+## 1.0.3
+
+### Patch Changes
+
+- [`2874afc`](https://github.com/codama-idl/renderers-demo/commit/2874afccd5c51e034f8ebdd94ea18f8ca4ba4913) Thanks [@lorisleiva](https://github.com/lorisleiva)! - This is another test patch update.
+
 ## 1.0.2
 
 ### Patch Changes
