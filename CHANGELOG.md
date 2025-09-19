@@ -1,5 +1,11 @@
 # @codama/renderers-demo
 
+## 1.0.4
+
+### Patch Changes
+
+- [#15](https://github.com/codama-idl/renderers-demo/pull/15) [`66be4db`](https://github.com/codama-idl/renderers-demo/commit/66be4db808a4eeee3c75a0437858946a8345ea4f) Thanks [@lorisleiva](https://github.com/lorisleiva)! - Bump Codama
+
 ## 1.0.3
 
 ### Patch Changes
