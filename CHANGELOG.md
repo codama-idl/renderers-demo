@@ -1,5 +1,11 @@
 # @codama/renderers-demo
 
+## 1.0.5
+
+### Patch Changes
+
+- [#63](https://github.com/codama-idl/renderers-demo/pull/63) [`a57624a`](https://github.com/codama-idl/renderers-demo/commit/a57624a2b1bcf358861e6c33da4f18532413bb81) Thanks [@lorisleiva](https://github.com/lorisleiva)! - Use latest RenderMap type from renderers-core
+
 ## 1.0.4
 
 ### Patch Changes
