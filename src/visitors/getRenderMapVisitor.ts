@@ -19,7 +19,7 @@ import {
     getPdaPageFragment,
     getProgramPageFragment,
 } from '../fragments';
-import { RenderMapOptions } from '../utils';
+import { Fragment, RenderMapOptions } from '../utils';
 import { getTypeVisitor } from './getTypeVisitor';
 import { getValueVisitor } from './getValueVisitor';
 
@@ -34,7 +34,7 @@ export function getRenderMapVisitor(options: RenderMapOptions = {}) {
     const byteSizeVisitor = getByteSizeVisitor(linkables, { stack });
 
     return pipe(
-        staticVisitor(() => createRenderMap(), {
+        staticVisitor(() => createRenderMap<Fragment>(), {
             keys: ['rootNode', 'programNode', 'pdaNode', 'accountNode', 'definedTypeNode', 'instructionNode'],
         }),
         v =>
