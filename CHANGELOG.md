@@ -1,5 +1,11 @@
 # @codama/renderers-demo
 
+## 1.0.6
+
+### Patch Changes
+
+- [#73](https://github.com/codama-idl/renderers-demo/pull/73) [`c08e199`](https://github.com/codama-idl/renderers-demo/commit/c08e1998e5eea2a29f263f99be6a791911c3f79a) Thanks [@lorisleiva](https://github.com/lorisleiva)! - Enabled Rollup treeshaking pass
+
 ## 1.0.5
 
 ### Patch Changes
