@@ -32,7 +32,7 @@ importers:
         version: 2.29.8(@types/node@24.10.1)
       '@codama/cli':
         specifier: ^1.3.5
-        version: 1.4.1
+        version: 1.4.3
       '@solana/eslint-config-solana':
         specifier: ^5.0.0
         version: 5.0.0(@eslint/js@9.39.1)(@types/eslint__js@8.42.3)(eslint-plugin-jest@29.0.1(@typescript-eslint/eslint-plugin@8.43.0(@typescript-eslint/parser@8.43.0(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1)(jest@30.1.3(@types/node@24.10.1))(typescript@5.9.3))(eslint-plugin-react-hooks@5.2.0(eslint@9.39.1))(eslint-plugin-simple-import-sort@12.1.1(eslint@9.39.1))(eslint-plugin-sort-keys-fix@1.1.2)(eslint-plugin-typescript-sort-keys@3.3.0(@typescript-eslint/parser@8.43.0(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1)(globals@14.0.0)(jest@30.1.3(@types/node@24.10.1))(typescript-eslint@8.43.0(eslint@9.39.1)(typescript@5.9.3))(typescript@5.9.3)
@@ -299,26 +299,16 @@ packages:
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
 
-  '@codama/cli@1.4.1':
-    resolution: {integrity: sha512-TZSN4MAUy93Y2h9w7vGwBwaGPkxdm0PWmDu5g1jMCJbJo02kx9NIu2cBk94wamYSSq75uoQDuaU+YW5DMteIQQ==}
-    hasBin: true
-
-  '@codama/errors@1.4.2':
-    resolution: {integrity: sha512-T7oVaM80AYfHoP1NFjDMpIZhZ/oWPCyPP6g/UG2SCJLOmkNOjiY99uvQ4kkYQcvErsOO3ftcsqgAzK9LgZMHMA==}
+  '@codama/cli@1.4.3':
+    resolution: {integrity: sha512-I6EdKY0e/6OFQpPgwa+qnts/dpWESIXRg0Zmwd6LR7WIL+6tOV1MYMbhrkYCGxxp1N0zkEiMShc9U6m7wj8oew==}
     hasBin: true
 
   '@codama/errors@1.4.4':
     resolution: {integrity: sha512-XC86H5X+zGTi0cSRKLc+wFkeXNsvnh+ttOgVnVHIljmXOJWbUt9wXhKding3UftipLWwlHPuoswERJ0vS0mO2A==}
     hasBin: true
 
-  '@codama/node-types@1.4.2':
-    resolution: {integrity: sha512-Sj3BMQfwQ6Sn0jlQmBkXktOJzgsK4S7en2b6Ns+DLwYsqisSdU3au3rZcHs2ZJ2ntHv+6WTxFnvEk5zdWrT7YQ==}
-
   '@codama/node-types@1.4.4':
     resolution: {integrity: sha512-uUeIz34Id/TTAMi4k5OVl9FByM/PawnlNIIVqgpooH9AS0UlniICZ+KJ/mdHZidJs/AGo6bSRoOPS1BLtMajyw==}
-
-  '@codama/nodes@1.4.2':
-    resolution: {integrity: sha512-A+6gx9C7h0Ksu2tRi2g9BTdpv2RZ29KFDUIJrEc9n0tua91pFKBUaW+1/bcnEqRYKOrfUXARwEgymSdjSfOAig==}
 
   '@codama/nodes@1.4.4':
     resolution: {integrity: sha512-JzlY5qLk3rhsnu0nerC/Vkc9/2HjdsLtEpBtST0dxC1j9kpfHvIc2uyIj+5hlB1YIBRJIDNo+UOHGla8hidkaA==}
@@ -326,14 +316,11 @@ packages:
   '@codama/renderers-core@1.3.3':
     resolution: {integrity: sha512-L2gvsgB9ZGwA0q2F9u8AgNJf2aqAWzyRjokhLNoS9IPEQaV6ALQ4Z9FQ7/snNzEg3OvFbCg21jUynMN0brfjcw==}
 
-  '@codama/visitors-core@1.4.2':
-    resolution: {integrity: sha512-i5mWxHOE8eLzoE4I0tly7Q/n0KEub2l1AIkpQ7J5HV1ACaViXW2l9j2cCfKmskN8HuDA2JXdlaKP+cT2cSW01w==}
-
   '@codama/visitors-core@1.4.4':
     resolution: {integrity: sha512-vk/4tczViAUHa7c8PF7FxN+JWbuTcDB0pIdrDbbO6eBPKDPQGZCUCEp6rXIYBVxfO129jWrNf2+CuyYre/c/vA==}
 
-  '@codama/visitors@1.4.2':
-    resolution: {integrity: sha512-AIzXtsK82o9I+B5KcdWW48kVknal1qDGlV5guQiF809PWTNOWKgas/St17N7od7wkwtw5BkivtQ8/s5zVBAIaA==}
+  '@codama/visitors@1.4.4':
+    resolution: {integrity: sha512-3w2aRNvGV6/rXTfRDynXR82zoAqX0P4tlfQ/zT4I4Bby4xTobKgDZLyAstodmA0D878eKW7sMg4Gb1m1R5dOig==}
 
   '@emnapi/core@1.7.1':
     resolution: {integrity: sha512-o1uhUASyo921r2XtHYOHy7gdkGLge8ghBEQHMWmyJFoXlpU58kIrhhN3w26lpQb6dspetweapMn2CSNwQ8I4wg==}
@@ -1656,8 +1643,8 @@ packages:
     resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
     engines: {node: '>=10'}
 
-  caniuse-lite@1.0.30001757:
-    resolution: {integrity: sha512-r0nnL/I28Zi/yjk1el6ilj27tKcdjLsNqAOZr0yVjWPrSQyHgKI2INaEWw21bAQSv2LXRt1XuCS/GomNpWOxsQ==}
+  caniuse-lite@1.0.30001759:
+    resolution: {integrity: sha512-Pzfx9fOKoKvevQf8oCXoyNRQ5QyxJj+3O0Rqx2V5oxT61KGx8+n6hV/IUyJeifUci2clnmmKVpvtiqRzgiWjSw==}
 
   chai@6.2.1:
     resolution: {integrity: sha512-p4Z49OGG5W/WBCPSS/dH3jQ73kD6tiMmUM+bckNK6Jr5JHMG3k9bg/BvKR8lKmtVBKmOiuVaV2ws8s9oSbwysg==}
@@ -3551,20 +3538,14 @@ snapshots:
       human-id: 4.1.3
       prettier: 2.8.8
 
-  '@codama/cli@1.4.1':
+  '@codama/cli@1.4.3':
     dependencies:
-      '@codama/nodes': 1.4.2
-      '@codama/visitors': 1.4.2
-      '@codama/visitors-core': 1.4.2
+      '@codama/nodes': 1.4.4
+      '@codama/visitors': 1.4.4
+      '@codama/visitors-core': 1.4.4
       commander: 14.0.2
       picocolors: 1.1.1
       prompts: 2.4.2
-
-  '@codama/errors@1.4.2':
-    dependencies:
-      '@codama/node-types': 1.4.2
-      commander: 14.0.2
-      picocolors: 1.1.1
 
   '@codama/errors@1.4.4':
     dependencies:
@@ -3572,14 +3553,7 @@ snapshots:
       commander: 14.0.2
       picocolors: 1.1.1
 
-  '@codama/node-types@1.4.2': {}
-
   '@codama/node-types@1.4.4': {}
-
-  '@codama/nodes@1.4.2':
-    dependencies:
-      '@codama/errors': 1.4.2
-      '@codama/node-types': 1.4.2
 
   '@codama/nodes@1.4.4':
     dependencies:
@@ -3592,23 +3566,17 @@ snapshots:
       '@codama/nodes': 1.4.4
       '@codama/visitors-core': 1.4.4
 
-  '@codama/visitors-core@1.4.2':
-    dependencies:
-      '@codama/errors': 1.4.2
-      '@codama/nodes': 1.4.2
-      json-stable-stringify: 1.3.0
-
   '@codama/visitors-core@1.4.4':
     dependencies:
       '@codama/errors': 1.4.4
       '@codama/nodes': 1.4.4
       json-stable-stringify: 1.3.0
 
-  '@codama/visitors@1.4.2':
+  '@codama/visitors@1.4.4':
     dependencies:
-      '@codama/errors': 1.4.2
-      '@codama/nodes': 1.4.2
-      '@codama/visitors-core': 1.4.2
+      '@codama/errors': 1.4.4
+      '@codama/nodes': 1.4.4
+      '@codama/visitors-core': 1.4.4
 
   '@emnapi/core@1.7.1':
     dependencies:
@@ -4839,7 +4807,7 @@ snapshots:
   browserslist@4.28.0:
     dependencies:
       baseline-browser-mapping: 2.8.32
-      caniuse-lite: 1.0.30001757
+      caniuse-lite: 1.0.30001759
       electron-to-chromium: 1.5.263
       node-releases: 2.0.27
       update-browserslist-db: 1.1.4(browserslist@4.28.0)
@@ -4880,7 +4848,7 @@ snapshots:
 
   camelcase@6.3.0: {}
 
-  caniuse-lite@1.0.30001757: {}
+  caniuse-lite@1.0.30001759: {}
 
   chai@6.2.1: {}
 
