@@ -1,5 +1,11 @@
 # @codama/renderers-demo
 
+## 1.0.7
+
+### Patch Changes
+
+- [#83](https://github.com/codama-idl/renderers-demo/pull/83) [`bd76ed8`](https://github.com/codama-idl/renderers-demo/commit/bd76ed82faa5245a4adf1de3b52fa24578310f53) Thanks [@lorisleiva](https://github.com/lorisleiva)! - Support `@codama/nodes@1.10`, whose node array attributes are now optional (`Array<T> | undefined`). Array reads and helper call sites are guarded with `?? []` throughout the renderer.
+
 ## 1.0.6
 
 ### Patch Changes
