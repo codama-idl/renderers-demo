@@ -72,10 +72,10 @@ export function getRenderMapVisitor(options: RenderMapOptions = {}) {
                 visitProgram(node, { self }) {
                     return mergeRenderMaps([
                         createRenderMap(`${indexFilename}.${extension}`, getProgramPageFragment(node)),
-                        ...node.accounts.map(n => visit(n, self)),
-                        ...node.definedTypes.map(n => visit(n, self)),
-                        ...node.instructions.map(n => visit(n, self)),
-                        ...node.pdas.map(n => visit(n, self)),
+                        ...(node.accounts ?? []).map(n => visit(n, self)),
+                        ...(node.definedTypes ?? []).map(n => visit(n, self)),
+                        ...(node.instructions ?? []).map(n => visit(n, self)),
+                        ...(node.pdas ?? []).map(n => visit(n, self)),
                     ]);
                 },
 

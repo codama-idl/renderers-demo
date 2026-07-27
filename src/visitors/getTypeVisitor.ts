@@ -97,7 +97,7 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                 },
 
                 visitEnumStructVariantType(node, { self }) {
-                    const fields = resolveNestedTypeNode(node.struct).fields;
+                    const fields = resolveNestedTypeNode(node.struct).fields ?? [];
                     const kindField = fragment`__kind: "${pascalCase(node.name)}"`;
 
                     const inlinedStruct = pipe(
@@ -129,14 +129,14 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                 visitEnumType(node, { self }) {
                     if (isScalarEnum(node)) {
                         const inlinedEnum = pipe(
-                            node.variants.map(v => visit(v, self)),
+                            (node.variants ?? []).map(v => visit(v, self)),
                             fs => mergeFragments(fs, cs => `{ ${cs.join(', ')} }`),
                         );
                         if (shouldInline(inlinedEnum)) return inlinedEnum;
 
                         indentLevel++;
                         const variants = pipe(
-                            node.variants.map(field => visit(field, self)),
+                            (node.variants ?? []).map(field => visit(field, self)),
                             fs => mergeFragments(fs, cs => cs.map(c => `${indent()}${c},\n`).join('')),
                         );
                         indentLevel--;
@@ -144,14 +144,14 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                     }
 
                     const inlinedEnum = pipe(
-                        node.variants.map(v => visit(v, self)),
+                        (node.variants ?? []).map(v => visit(v, self)),
                         fs => mergeFragments(fs, cs => cs.join(' | ')),
                     );
                     if (shouldInline(inlinedEnum)) return inlinedEnum;
 
                     indentLevel++;
                     const variants = pipe(
-                        node.variants.map(field => visit(field, self)),
+                        (node.variants ?? []).map(field => visit(field, self)),
                         fs => mergeFragments(fs, cs => cs.map(c => `| ${c}`).join(`\n${indent()}`)),
                     );
                     indentLevel--;
@@ -176,7 +176,7 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                 visitInstruction(node, { self }) {
                     const definedTypeArguments = definedTypeNode({
                         name: `${camelCase(node.name)}Instruction`,
-                        type: structTypeNodeFromInstructionArgumentNodes(node.arguments),
+                        type: structTypeNodeFromInstructionArgumentNodes(node.arguments ?? []),
                     });
                     return visit(definedTypeArguments, self);
                 },
@@ -241,17 +241,17 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                 },
 
                 visitStructType(node, { self }) {
-                    if (node.fields.length === 0) return fragment`{}`;
+                    if ((node.fields ?? []).length === 0) return fragment`{}`;
 
                     const inlinedStruct = pipe(
-                        node.fields.map(field => visit(field, self)),
+                        (node.fields ?? []).map(field => visit(field, self)),
                         fs => mergeFragments(fs, cs => `{ ${cs.join('; ')} }`),
                     );
                     if (shouldInline(inlinedStruct)) return inlinedStruct;
 
                     indentLevel++;
                     const fields = pipe(
-                        node.fields.map(field => visit(field, self)),
+                        (node.fields ?? []).map(field => visit(field, self)),
                         fs => mergeFragments(fs, cs => cs.map(c => `${indent()}${c};\n`).join('')),
                     );
                     indentLevel--;
@@ -260,14 +260,14 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
 
                 visitTupleType(node, { self }) {
                     const inlinedTuple = pipe(
-                        node.items.map(item => visit(item, self)),
+                        (node.items ?? []).map(item => visit(item, self)),
                         fs => mergeFragments(fs, cs => `[${cs.join(', ')}]`),
                     );
                     if (shouldInline(inlinedTuple)) return inlinedTuple;
 
                     indentLevel++;
                     const items = pipe(
-                        node.items.map(item => visit(item, self)),
+                        (node.items ?? []).map(item => visit(item, self)),
                         fs => mergeFragments(fs, cs => cs.map(c => `${indent()}${c},\n`).join('')),
                     );
                     indentLevel--;

@@ -7,7 +7,7 @@ import { getPdaSeedsFragment } from './pdaSeeds';
 
 export function getPdaPageFragment(node: PdaNode, typeVisitor: TypeVisitor, valueVisitor: ValueVisitor): Fragment {
     const title = `${titleCase(node.name)} PDA`;
-    const seeds = getPdaSeedsFragment(node.seeds, typeVisitor, valueVisitor);
+    const seeds = getPdaSeedsFragment(node.seeds ?? [], typeVisitor, valueVisitor);
 
     return getPageFragment(
         [
