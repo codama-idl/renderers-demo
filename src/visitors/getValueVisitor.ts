@@ -16,7 +16,7 @@ export function getValueVisitor(input: { stack?: NodeStack } = {}) {
             extendVisitor(visitor, {
                 visitArrayValue(node, { self }) {
                     return mergeFragments(
-                        node.items.map(item => visit(item, self)),
+                        (node.items ?? []).map(item => visit(item, self)),
                         cs => `[${cs.join(', ')}]`,
                     );
                 },
@@ -47,7 +47,7 @@ export function getValueVisitor(input: { stack?: NodeStack } = {}) {
 
                 visitMapValue(node, { self }) {
                     return mergeFragments(
-                        node.entries.map(entry => visit(entry, self)),
+                        (node.entries ?? []).map(entry => visit(entry, self)),
                         cs => `new Map([${cs.join(', ')}])`,
                     );
                 },
@@ -70,7 +70,7 @@ export function getValueVisitor(input: { stack?: NodeStack } = {}) {
 
                 visitSetValue(node, { self }) {
                     return mergeFragments(
-                        node.items.map(item => visit(item, self)),
+                        (node.items ?? []).map(item => visit(item, self)),
                         cs => `new Set([${cs.join(', ')}])`,
                     );
                 },
@@ -89,14 +89,14 @@ export function getValueVisitor(input: { stack?: NodeStack } = {}) {
 
                 visitStructValue(node, { self }) {
                     return mergeFragments(
-                        node.fields.map(field => visit(field, self)),
+                        (node.fields ?? []).map(field => visit(field, self)),
                         cs => (cs.length > 0 ? `{ ${cs.join(', ')} }` : '{}'),
                     );
                 },
 
                 visitTupleValue(node, { self }) {
                     return mergeFragments(
-                        node.items.map(item => visit(item, self)),
+                        (node.items ?? []).map(item => visit(item, self)),
                         cs => `[${cs.join(', ')}]`,
                     );
                 },

@@ -13,7 +13,7 @@ import { getProgramErrorsFragment } from './programErrors';
 
 export function getProgramPageFragment(node: ProgramNode): Fragment {
     const title = `${titleCase(node.name)} Program`;
-    const errors = getProgramErrorsFragment(node.errors);
+    const errors = getProgramErrorsFragment(node.errors ?? []);
 
     return getPageFragment(
         [
@@ -22,13 +22,13 @@ export function getProgramPageFragment(node: ProgramNode): Fragment {
             fragment`## Information`,
             fragment`- Address: \`${node.publicKey}\`\n- Version: \`${node.version}\``,
             fragment`## Accounts`,
-            getLinksFragment(node.accounts, 'accounts'),
+            getLinksFragment(node.accounts ?? [], 'accounts'),
             fragment`## Instructions`,
-            getLinksFragment(node.instructions, 'instructions'),
+            getLinksFragment(node.instructions ?? [], 'instructions'),
             fragment`## PDAs`,
-            getLinksFragment(node.pdas, 'pdas', 'PDAs'),
+            getLinksFragment(node.pdas ?? [], 'pdas', 'PDAs'),
             fragment`## Defined types`,
-            getLinksFragment(node.definedTypes, 'definedTypes', 'defined types'),
+            getLinksFragment(node.definedTypes ?? [], 'definedTypes', 'defined types'),
             fragment`## Errors`,
             errors ? errors : fragment`_This program has no errors._`,
         ],

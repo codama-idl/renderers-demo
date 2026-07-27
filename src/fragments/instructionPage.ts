@@ -15,8 +15,8 @@ import { getInstructionAccountsFragment } from './instructionAccounts';
 export function getInstructionPageFragment(node: InstructionNode, typeVisitor: TypeVisitor): Fragment {
     const title = titleCase(node.name);
     const type = visit(node, typeVisitor);
-    const accountsFragment = getInstructionAccountsFragment(node.accounts);
-    const hasArguments = node.arguments.length > 0;
+    const accountsFragment = getInstructionAccountsFragment(node.accounts ?? []);
+    const hasArguments = (node.arguments ?? []).length > 0;
 
     return getPageFragment(
         [
