@@ -63,7 +63,7 @@
         "@codama/release-tools": "github:codama-idl/release-tools#v1.0.0",
         "@solana/eslint-config-solana": "^6.0.1",
         "@solana/prettier-config-solana": "0.0.7",
-        "@types/node": "^25",
+        "@types/node": "^26",
         "agadoo": "^3.0.0",
         "eslint": "^9.35.0",
         "happy-dom": "^20.0.0",
