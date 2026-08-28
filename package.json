@@ -61,7 +61,7 @@
         "@changesets/cli": "^3.0.0",
         "@codama/cli": "^1.6.0",
         "@codama/release-tools": "github:codama-idl/release-tools#v1.0.0",
-        "@solana/eslint-config-solana": "^5.0.0",
+        "@solana/eslint-config-solana": "^6.0.1",
         "@solana/prettier-config-solana": "0.0.7",
         "@types/node": "^25",
         "agadoo": "^3.0.0",
