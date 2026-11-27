@@ -29,3 +29,24 @@ Add the following script to your Codama configuration file.
     }
 }
 ```
+
+This renders Markdown documentation for your program in the `docs` folder: a `README.md` overview page, and one page per account, defined type, instruction and PDA.
+
+This renderer requires IDLs of the Codama v2 standard. To render a v1 IDL, upgrade it once with `codama upgrade path/to/idl.json`, or install `@codama/upgrade` and add it as a `before` visitor of your configuration.
+
+```json
+{
+    "before": ["@codama/upgrade"]
+}
+```
+
+## Options
+
+The `renderVisitor` accepts the following options as a second argument, e.g. `"args": ["docs", { "extension": "mdx" }]`.
+
+| Name                          | Type      | Default    | Description                                                     |
+| ----------------------------- | --------- | ---------- | --------------------------------------------------------------- |
+| `deleteFolderBeforeRendering` | `boolean` | `true`     | Whether to delete the output folder before rendering.           |
+| `extension`                   | `string`  | `'md'`     | The extension of the rendered files.                            |
+| `indexFilename`               | `string`  | `'README'` | The name of the program page, without its extension.            |
+| `typeIndent`                  | `string`  | `'    '`   | The indentation of type definitions rendered on multiple lines. |
