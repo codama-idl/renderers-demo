@@ -12,7 +12,10 @@ pnpm install
 pnpm build
 pnpm test
 pnpm lint
+pnpm format
 ```
+
+Linting and formatting use oxlint and oxfmt. Run `pnpm lint:fix` and `pnpm format:fix` to fix most issues automatically.
 
 ## Declaring release intent
 

@@ -1,0 +1,121 @@
+# @codama/renderers-demo
+
+## What this project is
+
+`@codama/renderers-demo` is a small Codama renderer that turns a Codama IDL into Markdown documentation: one page per account, defined type, instruction and PDA, plus a program overview page listing its errors.
+
+It is a **teaching resource** for developers writing their own renderer, and a starting point for forks. Keep the code simple enough to read top to bottom. Prefer fewer features to clever code, and think twice before removing helpers that a fork may build upon (e.g. `getCommentFragment`) or concepts it introduces on purpose (e.g. `ImportMap`).
+
+## Mental model
+
+The renderer has three layers, which mirror larger renderers such as `@codama/renderers-js`:
+
+1. `src/visitors/getTypeVisitor.ts` and `src/visitors/getValueVisitor.ts`: render type and value nodes as TypeScript-like snippets.
+2. `src/fragments/*`: assemble those snippets into account, defined type, instruction, PDA and program pages.
+3. `src/visitors/getRenderMapVisitor.ts` and `src/visitors/renderVisitor.ts`: decide which pages exist, then write them to disk.
+
+## End-to-end render flow
+
+1. The caller invokes `renderVisitor(path, options)`, the default export, e.g. through the Codama CLI.
+2. The output folder is deleted unless `deleteFolderBeforeRendering === false`.
+3. `getRenderMapVisitor(options)` rejects root nodes of another major version (`CODAMA_ERROR__VERSION_MISMATCH`), then returns a `RenderMap` of pages keyed by path.
+4. `getPageFragment` joins the sections of each page and lists the imports it collected as "See also" links.
+5. `writeRenderMap` from `@codama/fragments` writes the pages.
+
+## Core abstractions
+
+- **`Fragment`** (`src/utils/fragment.ts`): an immutable piece of content with the imports it requires, built on `BaseFragment` and `createFragmentTemplate` from `@codama/fragments`. Compose fragments with the `fragment` template tag and `mergeFragments`.
+- **`ImportMap`** (`src/utils/importMap.ts`): the names a fragment imports, grouped by symbolic path, e.g. `generatedTypes`. It is kept on purpose to introduce the concept that code renderers rely on. Here, imports become links resolved by `getImportMapLinks` and the `PathOverrides` of each page.
+- **`RenderMap`**: from `@codama/fragments`, maps output paths to fragments.
+
+## Output structure
+
+- `README.md` (`indexFilename` option): the program page.
+- `accounts/`, `definedTypes/`, `instructions/`, `pdas/`: one page per node, named after the camelCase form of its identifier.
+
+Only `program.instructions`, `accounts`, `definedTypes`, `pdas` and `errors` of the root program are rendered. Additional programs, events, constants and sub-instructions are out of scope.
+
+## Codama v2 conventions
+
+- Node identifiers keep their original casing (e.g. `transfer_tokens`), so every rendered name goes through `@codama/fragments/casing`: camelCase for file names, links, fields and seeds, PascalCase for type names, title case for titles.
+- Docs and error messages are `string | TextNode`; read them with `getTextNodeContent` from `@codama/nodes`.
+- Instruction arguments are the instruction `data`: absent, a struct, or a link to a defined type.
+- Type `transforms` and the `count` of arrays, sets and maps are ignored, since they affect encoding, not shape.
+- Unsupported nodes throw `CODAMA_ERROR__RENDERERS__UNSUPPORTED_NODE` with the `path` of the node rather than rendering an empty string.
+
+## Testing
+
+- Unit tests in `test/fragments` and `test/visitors` build nodes with `@codama/nodes` and assert rendered fragments.
+- `test/exports` smoke-tests the built `dist` in CommonJS and ES modules.
+- E2E fixtures in `test/e2e/system` and `test/e2e/token` run `codama run demo` against the **built** package (`file:../../..`) and write committed `docs/`. CI requires a clean working tree after `pnpm build && pnpm test`, so the committed docs act as snapshots: regenerate and commit them when output changes.
+
+## Commands
+
+- `pnpm build`, `pnpm test` (types, treeshakability, unit, e2e, exports)
+- `pnpm lint`, `pnpm lint:fix` (oxlint, type-aware through `oxlint-tsgolint`)
+- `pnpm format`, `pnpm format:fix` (oxfmt)
+
+Both tools extend `@solana-config/oxc`. Their `ignorePatterns` must stay in sync, and exclude generated fixture docs, fixture IDLs and agent files.
+
+## Release process
+
+- Changesets drives versioning. Pending release notes live in `.changeset/*.md`.
+- The release job of `.github/workflows/main.yml` delegates to `codama-idl/release-tools` on pushes to `main` and `[0-9]+.x` branches. While `.changeset/pre.json` exists, releases are candidates under the `rc` dist-tag.
+- Use a `major` changeset whenever generated docs change during a major's candidacy.
+
+## Practical repo facts
+
+- Package manager: `pnpm@10.15.1`
+- Required Node: `>=22.12.0`
+- TypeScript: strict, `module: "preserve"`, `moduleResolution: "bundler"`
+
+<!-- skills-inject:start -->
+
+## Skill Instructions
+
+The following instructions come from installed skills (autogenerated, do not edit manually) and should always be followed.
+
+### Changesets
+
+- Any PR that should trigger a package release MUST include a changeset.
+- Identify affected packages by mapping changed files to their nearest `package.json`.
+- Choose the right bump: `patch` for fixes, `minor` for features, `major` for breaking changes.
+- While a project is pre-1.0, `minor` bumps may be treated as breaking.
+- ALWAYS use `npx changeset add --empty` to generate a new changeset file with a random name. NEVER create changeset files manually.
+- No changeset needed for: docs-only changes, CI config, dev dependency updates, test-only changes.
+
+### Shipping (Git)
+
+- NEVER commit, push, create branches, or create PRs without explicit user approval.
+- Before any git operation that creates or modifies a commit, present a review block containing: changeset entry (if applicable), commit title, and commit/PR description. ALWAYS wait for approval.
+- Use standard `git add` and `git commit` workflows. Concise title on the first line, blank line, then description body.
+- Use `gh pr create` for pull requests.
+- Write commit and PR descriptions as natural flowing prose. Do NOT insert hard line breaks mid-paragraph.
+
+### Shipping (Graphite)
+
+- Check if [Graphite](https://graphite.dev/) is installed (`which gt`). Prefer Graphite when available; fall back to the Git shipping workflow otherwise.
+- NEVER commit, push, create branches, or create PRs without explicit user approval.
+- Before any git operation that creates or modifies a commit, present a review block containing: changeset entry (if applicable), commit title, and commit/PR description. ALWAYS wait for approval.
+- Use `gt create -am "Title" -m "Description body"` for new PRs. The first `-m` sets the commit title; the second sets the PR description.
+- Use `gt modify -a` to amend the current branch with follow-up changes (NEVER create additional commits on the same branch).
+- ALWAYS escape backticks in commit messages with backslashes for shell compatibility (e.g. `"Update \`my-package\` config"`).
+- Do NOT run `gt submit` after committing. Only run it when the user explicitly asks to submit or push.
+- Write commit and PR descriptions as natural flowing prose. Do NOT insert hard line breaks mid-paragraph.
+
+### TypeScript Docblocks
+
+- All exported functions, types, interfaces, and constants MUST have JSDoc docblocks.
+- Start with `/**`, use `*` prefix for each line, end with `*/` — each on its own line.
+- Begin with a clear one-to-two line summary. Add a blank line before tags.
+- Include `@param`, `@typeParam`, `@return`, `@throws`, and at least one `@example` when helpful.
+- Use `{@link ...}` to reference related items. Add `@see` tags at the end for related APIs.
+
+### TypeScript READMEs
+
+- When adding a new public API, add or update the package's README.
+- Structure: brief intro, installation, usage (with code snippet), deep-dive sections.
+- Code snippets must be realistic, concise, and use TypeScript syntax.
+- Focus on the quickest path to success. Developers should feel excited, not overwhelmed.
+
+<!-- skills-inject:end -->
