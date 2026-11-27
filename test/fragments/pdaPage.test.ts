@@ -16,11 +16,11 @@ import { getTypeVisitor, getValueVisitor } from '../../src/visitors';
 
 test('it renders PDA pages', () => {
     const node = pdaNode({
-        docs: ['This is some description for the Associated Token PDA.', 'It can use multiple lines.'],
-        name: 'associatedToken',
+        docs: 'This is some description for the Associated Token PDA.\nIt can use multiple lines.',
+        identifier: 'associatedToken',
         seeds: [
-            variablePdaSeedNode('mint', publicKeyTypeNode(), 'The Mint account.'),
-            variablePdaSeedNode('owner', publicKeyTypeNode(), 'The Owner account.'),
+            variablePdaSeedNode('mint', publicKeyTypeNode(), { docs: 'The Mint account.' }),
+            variablePdaSeedNode('owner', publicKeyTypeNode(), { docs: 'The Owner account.' }),
             constantPdaSeedNodeFromString('base58', 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         ],
     });
@@ -47,7 +47,7 @@ It can use multiple lines.
 });
 
 test('it renders a page with no seeds', () => {
-    const node = pdaNode({ name: 'counter', seeds: [] });
+    const node = pdaNode({ identifier: 'counter', seeds: [] });
 
     const result = getPdaPageFragment(node, getTypeVisitor(), getValueVisitor());
 
@@ -65,9 +65,9 @@ _This PDA has no seeds._`);
 
 test('it renders see also sections', () => {
     const node = pdaNode({
-        name: 'counter',
+        identifier: 'counter',
         seeds: [
-            variablePdaSeedNode('authority', publicKeyTypeNode(), 'The Authority account.'),
+            variablePdaSeedNode('authority', publicKeyTypeNode(), { docs: 'The Authority account.' }),
             constantPdaSeedNode(definedTypeLinkNode('counterMode'), enumValueNode('counterMode', 'incremental')),
         ],
     });

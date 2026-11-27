@@ -1,3 +1,4 @@
+import { CODAMA_ERROR__RENDERERS__UNSUPPORTED_NODE, CodamaError } from '@codama/errors';
 import {
     arrayValueNode,
     booleanValueNode,
@@ -5,11 +6,13 @@ import {
     constantValueNode,
     constantValueNodeFromBytes,
     enumValueNode,
+    floatValueNode,
+    injectedValueNode,
+    integerTypeNode,
+    integerValueNode,
     mapEntryValueNode,
     mapValueNode,
     noneValueNode,
-    numberTypeNode,
-    numberValueNode,
     ProgramIdValueNode,
     programIdValueNode,
     publicKeyValueNode,
@@ -35,7 +38,7 @@ function expectValue(node: ProgramIdValueNode | ValueNode, expected: Fragment | 
 
 test('it renders array values', () => {
     expectValue(arrayValueNode([]), '[]');
-    expectValue(arrayValueNode([numberValueNode(1), numberValueNode(2)]), '[1, 2]');
+    expectValue(arrayValueNode([integerValueNode('1'), integerValueNode('2')]), '[1, 2]');
 });
 
 test('it renders boolean values', () => {
@@ -52,7 +55,7 @@ test('it renders byte values', () => {
 });
 
 test('it renders constant values', () => {
-    expectValue(constantValueNode(numberTypeNode('u8'), numberValueNode(42)), '42');
+    expectValue(constantValueNode(integerTypeNode('u8'), integerValueNode('42')), '42');
     expectValue(constantValueNodeFromBytes('utf8', 'hello'), '0x68656c6c6f');
     expectValue(constantValueNodeFromBytes('base16', 'deadbeef'), '0xdeadbeef');
     expectValue(constantValueNodeFromBytes('base58', 'HeLLo'), '0x0b39f6f0');
@@ -64,14 +67,31 @@ test('it renders enum values', () => {
         enumValueNode('direction', 'left'),
         addFragmentImports(fragment`Direction.Left`, 'generatedTypes', 'Direction'),
     );
+    expectValue(
+        enumValueNode('command', 'move', {
+            value: structValueNode([
+                structFieldValueNode('x', integerValueNode('1')),
+                structFieldValueNode('y', integerValueNode('2')),
+            ]),
+        }),
+        addFragmentImports(fragment`Command.Move({ x: 1, y: 2 })`, 'generatedTypes', 'Command'),
+    );
+    expectValue(
+        enumValueNode('command', 'write', { value: tupleValueNode([stringValueNode('hello')]) }),
+        addFragmentImports(fragment`Command.Write(["hello"])`, 'generatedTypes', 'Command'),
+    );
+    expectValue(
+        enumValueNode('token_state', 'is_frozen'),
+        addFragmentImports(fragment`TokenState.IsFrozen`, 'generatedTypes', 'TokenState'),
+    );
 });
 
 test('it renders map values', () => {
     expectValue(
         mapValueNode([
-            mapEntryValueNode(stringValueNode('Alice'), numberValueNode(30)),
-            mapEntryValueNode(stringValueNode('Bob'), numberValueNode(42)),
-            mapEntryValueNode(stringValueNode('Carla'), numberValueNode(39)),
+            mapEntryValueNode(stringValueNode('Alice'), integerValueNode('30')),
+            mapEntryValueNode(stringValueNode('Bob'), integerValueNode('42')),
+            mapEntryValueNode(stringValueNode('Carla'), integerValueNode('39')),
         ]),
         'new Map([["Alice", 30], ["Bob", 42], ["Carla", 39]])',
     );
@@ -81,10 +101,16 @@ test('it renders none values', () => {
     expectValue(noneValueNode(), 'null');
 });
 
-test('it renders number values', () => {
-    expectValue(numberValueNode(0), '0');
-    expectValue(numberValueNode(42), '42');
-    expectValue(numberValueNode(-2.5), '-2.5');
+test('it renders float values', () => {
+    expectValue(floatValueNode('0'), '0');
+    expectValue(floatValueNode('-2.5'), '-2.5');
+});
+
+test('it renders integer values', () => {
+    expectValue(integerValueNode('0'), '0');
+    expectValue(integerValueNode('42'), '42');
+    expectValue(integerValueNode('-7'), '-7');
+    expectValue(integerValueNode('18446744073709551615'), '18446744073709551615');
 });
 
 test('it renders program id values', () => {
@@ -100,11 +126,11 @@ test('it renders public key values', () => {
 
 test('it renders set values', () => {
     expectValue(setValueNode([]), 'new Set([])');
-    expectValue(setValueNode([numberValueNode(1), numberValueNode(2)]), 'new Set([1, 2])');
+    expectValue(setValueNode([integerValueNode('1'), integerValueNode('2')]), 'new Set([1, 2])');
 });
 
 test('it ignores some values', () => {
-    expectValue(someValueNode(numberValueNode(42)), '42');
+    expectValue(someValueNode(integerValueNode('42')), '42');
     expectValue(someValueNode(stringValueNode('hello')), '"hello"');
 });
 
@@ -118,13 +144,26 @@ test('it renders struct values', () => {
     expectValue(
         structValueNode([
             structFieldValueNode('name', stringValueNode('Alice')),
-            structFieldValueNode('age', numberValueNode(30)),
+            structFieldValueNode('age', integerValueNode('30')),
         ]),
         '{ name: "Alice", age: 30 }',
+    );
+    expectValue(
+        structValueNode([structFieldValueNode('first_name', stringValueNode('Alice'))]),
+        '{ firstName: "Alice" }',
     );
 });
 
 test('it renders tuple values', () => {
     expectValue(tupleValueNode([]), '[]');
-    expectValue(tupleValueNode([stringValueNode('Alice'), numberValueNode(30)]), '["Alice", 30]');
+    expectValue(tupleValueNode([stringValueNode('Alice'), integerValueNode('30')]), '["Alice", 30]');
+});
+
+test('it throws with the path of values it cannot render', () => {
+    const injectedValue = injectedValueNode({ key: 'amount' });
+    const field = structFieldValueNode('amount', injectedValue);
+    const struct = structValueNode([field]);
+    expect(() => visit(struct, getValueVisitor())).toThrow(
+        new CodamaError(CODAMA_ERROR__RENDERERS__UNSUPPORTED_NODE, { path: [struct, field, injectedValue] }),
+    );
 });

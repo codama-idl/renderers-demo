@@ -1,5 +1,5 @@
-import { camelCase } from '@codama/nodes';
-import { joinPath, Path } from '@codama/renderers-core';
+import { joinPath, Path } from '@codama/fragments';
+import { camelCase } from '@codama/fragments/casing';
 
 export type ImportMap = ReadonlyMap<Path, ReadonlySet<string>>;
 

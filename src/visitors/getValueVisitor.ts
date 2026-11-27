@@ -1,7 +1,9 @@
-import { pascalCase, REGISTERED_VALUE_NODE_KINDS } from '@codama/nodes';
+import { CODAMA_ERROR__RENDERERS__UNSUPPORTED_NODE, CodamaError } from '@codama/errors';
+import { camelCase, pascalCase } from '@codama/fragments/casing';
+import { REGISTERED_VALUE_NODE_KINDS } from '@codama/nodes';
 import { extendVisitor, NodeStack, pipe, recordNodeStackVisitor, staticVisitor, visit } from '@codama/visitors-core';
 
-import { addFragmentImports, fragment, getStringValueAsHexadecimals, mergeFragments } from '../utils';
+import { addFragmentImports, Fragment, fragment, getStringValueAsHexadecimals, mergeFragments } from '../utils';
 
 export type ValueVisitor = ReturnType<typeof getValueVisitor>;
 
@@ -9,9 +11,13 @@ export function getValueVisitor(input: { stack?: NodeStack } = {}) {
     const stack = input.stack ?? new NodeStack();
 
     return pipe(
-        staticVisitor(() => fragment``, {
-            keys: [...REGISTERED_VALUE_NODE_KINDS, 'programIdValueNode'],
-        }),
+        // Any node this visitor does not override below, e.g. an `injectedValueNode`, cannot be rendered.
+        staticVisitor(
+            (): Fragment => {
+                throw new CodamaError(CODAMA_ERROR__RENDERERS__UNSUPPORTED_NODE, { path: stack.getPath() });
+            },
+            { keys: [...REGISTERED_VALUE_NODE_KINDS, 'programIdValueNode'] },
+        ),
         visitor =>
             extendVisitor(visitor, {
                 visitArrayValue(node, { self }) {
@@ -33,10 +39,19 @@ export function getValueVisitor(input: { stack?: NodeStack } = {}) {
                     return visit(node.value, self);
                 },
 
-                visitEnumValue(node) {
-                    const enumName = pascalCase(node.enum.name);
+                visitEnumValue(node, { self }) {
+                    const enumName = pascalCase(node.enum.identifier);
                     const enumType = addFragmentImports(fragment`${enumName}`, 'generatedTypes', enumName);
-                    return fragment`${enumType}.${pascalCase(node.variant)}`;
+                    const variant = fragment`${enumType}.${pascalCase(node.variant)}`;
+                    return node.value ? fragment`${variant}(${visit(node.value, self)})` : variant;
+                },
+
+                visitFloatValue(node) {
+                    return fragment`${node.value}`;
+                },
+
+                visitIntegerValue(node) {
+                    return fragment`${node.value}`;
                 },
 
                 visitMapEntryValue(node, { self }) {
@@ -54,10 +69,6 @@ export function getValueVisitor(input: { stack?: NodeStack } = {}) {
 
                 visitNoneValue() {
                     return fragment`null`;
-                },
-
-                visitNumberValue(node) {
-                    return fragment`${node.number}`;
                 },
 
                 visitProgramIdValue() {
@@ -84,7 +95,7 @@ export function getValueVisitor(input: { stack?: NodeStack } = {}) {
                 },
 
                 visitStructFieldValue(node, { self }) {
-                    return fragment`${node.name}: ${visit(node.value, self)}`;
+                    return fragment`${camelCase(node.identifier)}: ${visit(node.value, self)}`;
                 },
 
                 visitStructValue(node, { self }) {

@@ -1,5 +1,6 @@
-import { camelCase, ProgramNode, titleCase } from '@codama/nodes';
-import { joinPath } from '@codama/renderers-core';
+import { joinPath } from '@codama/fragments';
+import { camelCase, titleCase } from '@codama/fragments/casing';
+import { ProgramNode } from '@codama/nodes';
 
 import {
     Fragment,
@@ -12,7 +13,7 @@ import {
 import { getProgramErrorsFragment } from './programErrors';
 
 export function getProgramPageFragment(node: ProgramNode): Fragment {
-    const title = `${titleCase(node.name)} Program`;
+    const title = `${titleCase(node.identifier)} Program`;
     const errors = getProgramErrorsFragment(node.errors ?? []);
 
     return getPageFragment(
@@ -42,11 +43,11 @@ export function getProgramPageFragment(node: ProgramNode): Fragment {
     );
 }
 
-function getLinksFragment(items: { name: string }[], folder: string, identifier?: string): Fragment {
+function getLinksFragment(items: { identifier: string }[], folder: string, identifier?: string): Fragment {
     if (items.length === 0) return fragment`_This program has no ${identifier ?? folder}._`;
     const links = items.map(item => {
-        const link = joinPath(folder, `${camelCase(item.name)}.md`);
-        return fragment`- [${titleCase(item.name)}](${link})`;
+        const link = joinPath(folder, `${camelCase(item.identifier)}.md`);
+        return fragment`- [${titleCase(item.identifier)}](${link})`;
     });
     return mergeFragments(links, cs => cs.join('\n'));
 }

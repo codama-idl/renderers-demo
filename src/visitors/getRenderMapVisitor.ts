@@ -1,8 +1,11 @@
-import { camelCase } from '@codama/nodes';
-import { createRenderMap, mergeRenderMaps } from '@codama/renderers-core';
+import { CODAMA_ERROR__VERSION_MISMATCH, CodamaError } from '@codama/errors';
+import { createRenderMap, mergeRenderMaps } from '@codama/fragments';
+import { camelCase } from '@codama/fragments/casing';
+import { CODAMA_VERSION, getCodamaVersionMajor, isNode } from '@codama/nodes';
 import {
     extendVisitor,
     getByteSizeVisitor,
+    interceptFirstVisitVisitor,
     LinkableDictionary,
     NodeStack,
     pipe,
@@ -43,28 +46,28 @@ export function getRenderMapVisitor(options: RenderMapOptions = {}) {
                     const pda = node.pda ? linkables.get([...stack.getPath(), node.pda]) : undefined;
                     const size = visit(node, byteSizeVisitor);
                     return createRenderMap(
-                        `accounts/${camelCase(node.name)}.${extension}`,
+                        `accounts/${camelCase(node.identifier)}.${extension}`,
                         getAccountPageFragment(node, typeVisitor, size ?? undefined, pda),
                     );
                 },
 
                 visitDefinedType(node) {
                     return createRenderMap(
-                        `definedTypes/${camelCase(node.name)}.${extension}`,
+                        `definedTypes/${camelCase(node.identifier)}.${extension}`,
                         getDefinedTypePageFragment(node, typeVisitor),
                     );
                 },
 
                 visitInstruction(node) {
                     return createRenderMap(
-                        `instructions/${camelCase(node.name)}.${extension}`,
+                        `instructions/${camelCase(node.identifier)}.${extension}`,
                         getInstructionPageFragment(node, typeVisitor),
                     );
                 },
 
                 visitPda(node) {
                     return createRenderMap(
-                        `pdas/${camelCase(node.name)}.${extension}`,
+                        `pdas/${camelCase(node.identifier)}.${extension}`,
                         getPdaPageFragment(node, typeVisitor, valueVisitor),
                     );
                 },
@@ -86,5 +89,20 @@ export function getRenderMapVisitor(options: RenderMapOptions = {}) {
             }),
         v => recordNodeStackVisitor(v, stack),
         v => recordLinkablesOnFirstVisitVisitor(v, linkables),
+        // Trees of another major version of the Codama standard have other node kinds and attributes,
+        // so they are rejected before rendering anything.
+        v =>
+            interceptFirstVisitVisitor(v, (node, next) => {
+                if (
+                    isNode(node, 'rootNode') &&
+                    getCodamaVersionMajor(node.version) !== getCodamaVersionMajor(CODAMA_VERSION)
+                ) {
+                    throw new CodamaError(CODAMA_ERROR__VERSION_MISMATCH, {
+                        codamaVersion: CODAMA_VERSION,
+                        rootVersion: node.version,
+                    });
+                }
+                return next(node);
+            }),
     );
 }

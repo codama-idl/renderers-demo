@@ -1,4 +1,4 @@
-import { deleteDirectory, writeRenderMap } from '@codama/renderers-core';
+import { deleteDirectory, writeRenderMap } from '@codama/fragments';
 import { rootNodeVisitor, visit } from '@codama/visitors-core';
 
 import { RenderOptions } from '../utils/options';
