@@ -87,6 +87,13 @@
         "supports bigint and not dead",
         "maintained node versions"
     ],
+    "devEngines": {
+        "runtime": {
+            "name": "node",
+            "version": ">=22.18.0",
+            "onFail": "error"
+        }
+    },
     "engines": {
         "node": ">=22.12.0"
     },

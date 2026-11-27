@@ -66,7 +66,7 @@ Both tools extend `@solana-config/oxc`. Their `ignorePatterns` must stay in sync
 ## Practical repo facts
 
 - Package manager: `pnpm@10.15.1`
-- Required Node: `>=22.12.0`
+- Required Node: `>=22.12.0`, or 22.18+ (declared in `devEngines`) to run `pnpm lint` and `pnpm format`, whose `*.config.ts` files rely on native type stripping
 - TypeScript: strict, `module: "preserve"`, `moduleResolution: "bundler"`
 
 <!-- skills-inject:start -->
