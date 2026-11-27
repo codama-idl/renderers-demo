@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # `main` hosts the current major, which targets Codama v2.
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
@@ -11,3 +12,24 @@ updates:
       codama:
         patterns:
           - '@codama/*'
+    ignore:
+      # Installed from GitHub rather than npm, where Dependabot fails to look it up.
+      - dependency-name: '@codama/release-tools'
+
+  # `1.x` maintains the previous major, which targets Codama v1.
+  - package-ecosystem: 'npm'
+    directory: '/'
+    target-branch: 1.x
+    schedule:
+      interval: daily
+      time: '01:00'
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 10
+    groups:
+      codama:
+        patterns:
+          - '@codama/*'
+    ignore:
+      - dependency-name: '@codama/release-tools'
+      - dependency-name: '@codama/*'
+        update-types: ['version-update:semver-major']

@@ -12,7 +12,10 @@ pnpm install
 pnpm build
 pnpm test
 pnpm lint
+pnpm format
 ```
+
+Linting and formatting use oxlint and oxfmt, whose TypeScript config files need Node.js 22.18 or later (declared in `devEngines`). Run `pnpm lint:fix` and `pnpm format:fix` to fix most issues automatically.
 
 ## Declaring release intent
 

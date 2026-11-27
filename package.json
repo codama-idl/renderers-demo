@@ -2,6 +2,35 @@
     "name": "@codama/renderers-demo",
     "version": "1.0.7",
     "description": "Demo renderer to help creating new ones",
+    "keywords": [
+        "demo",
+        "framework",
+        "renderers",
+        "solana",
+        "standard"
+    ],
+    "bugs": {
+        "url": "http://github.com/codama-idl/renderers-demo/issues"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/codama-idl/renderers-demo"
+    },
+    "files": [
+        "./dist/types",
+        "./dist/index.*"
+    ],
+    "type": "commonjs",
+    "sideEffects": false,
+    "main": "./dist/index.node.cjs",
+    "module": "./dist/index.node.mjs",
+    "browser": {
+        "./dist/index.node.cjs": "./dist/index.browser.cjs",
+        "./dist/index.node.mjs": "./dist/index.browser.mjs"
+    },
+    "types": "./dist/types/index.d.ts",
+    "react-native": "./dist/index.react-native.mjs",
     "exports": {
         "types": "./dist/types/index.d.ts",
         "react-native": "./dist/index.react-native.mjs",
@@ -14,32 +43,13 @@
             "require": "./dist/index.node.cjs"
         }
     },
-    "browser": {
-        "./dist/index.node.cjs": "./dist/index.browser.cjs",
-        "./dist/index.node.mjs": "./dist/index.browser.mjs"
-    },
-    "main": "./dist/index.node.cjs",
-    "module": "./dist/index.node.mjs",
-    "react-native": "./dist/index.react-native.mjs",
-    "types": "./dist/types/index.d.ts",
-    "type": "commonjs",
-    "files": [
-        "./dist/types",
-        "./dist/index.*"
-    ],
-    "sideEffects": false,
-    "keywords": [
-        "solana",
-        "framework",
-        "standard",
-        "renderers",
-        "demo"
-    ],
     "scripts": {
         "build": "rimraf dist && tsup && tsc -p ./tsconfig.declarations.json",
         "dev": "vitest --project node",
-        "lint": "eslint . && prettier --check .",
-        "lint:fix": "eslint --fix . && prettier --write .",
+        "format": "oxfmt --check",
+        "format:fix": "oxfmt",
+        "lint": "oxlint",
+        "lint:fix": "oxlint --fix",
         "release:publish": "pnpm build && changeset publish",
         "release:version": "changeset version && release-tools postversion",
         "test": "pnpm test:types && pnpm test:treeshakability && pnpm test:unit && pnpm test:e2e && pnpm test:exports",
@@ -61,33 +71,31 @@
         "@changesets/cli": "^3.0.0",
         "@codama/cli": "2.0.0-rc.0",
         "@codama/release-tools": "github:codama-idl/release-tools#v1.3.1",
-        "@solana/eslint-config-solana": "^6.0.1",
-        "@solana/prettier-config-solana": "0.0.7",
+        "@solana-config/oxc": "^0.1.1",
         "@types/node": "^26",
         "agadoo": "^3.0.0",
-        "eslint": "^9.35.0",
         "happy-dom": "^21.0.4",
-        "prettier": "^3.6.2",
+        "oxfmt": "^0.79.0",
+        "oxlint": "^1.95.0",
+        "oxlint-tsgolint": "^7.0.2009",
         "rimraf": "6.1.4",
         "tsup": "^9.0.0",
         "typescript": "^5.9.2",
         "vitest": "^5.0.3"
     },
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/codama-idl/renderers-demo"
-    },
-    "bugs": {
-        "url": "http://github.com/codama-idl/renderers-demo/issues"
-    },
     "browserslist": [
         "supports bigint and not dead",
         "maintained node versions"
     ],
-    "engines": {
-        "node": ">=20.18.0"
+    "devEngines": {
+        "runtime": {
+            "name": "node",
+            "version": ">=22.18.0",
+            "onFail": "error"
+        }
     },
-    "packageManager": "pnpm@10.15.1",
-    "prettier": "@solana/prettier-config-solana"
+    "engines": {
+        "node": ">=22.12.0"
+    },
+    "packageManager": "pnpm@10.15.1"
 }
