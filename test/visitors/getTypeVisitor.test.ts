@@ -1,7 +1,6 @@
 import {
     AccountNode,
     accountNode,
-    amountTypeNode,
     arrayTypeNode,
     booleanTypeNode,
     bytesTypeNode,
@@ -10,29 +9,30 @@ import {
     definedTypeLinkNode,
     DefinedTypeNode,
     definedTypeNode,
-    enumEmptyVariantTypeNode,
-    enumStructVariantTypeNode,
-    enumTupleVariantTypeNode,
+    durationTypeNode,
     enumTypeNode,
+    enumVariantTypeNode,
     fixedCountNode,
-    fixedSizeTypeNode,
-    hiddenPrefixTypeNode,
-    hiddenSuffixTypeNode,
-    instructionArgumentNode,
+    fixedPointTypeNode,
+    fixedSizeTransformNode,
+    floatTypeNode,
+    hiddenPrefixTransformNode,
+    hiddenSuffixTransformNode,
     InstructionNode,
     instructionNode,
+    integerTypeNode,
     mapTypeNode,
-    numberTypeNode,
     optionTypeNode,
-    postOffsetTypeNode,
-    preOffsetTypeNode,
+    postOffsetTransformNode,
+    prefixedCountNode,
+    preOffsetTransformNode,
     publicKeyTypeNode,
     remainderCountNode,
     remainderOptionTypeNode,
-    sentinelTypeNode,
+    sentinelCountNode,
+    sentinelTransformNode,
     setTypeNode,
-    sizePrefixTypeNode,
-    solAmountTypeNode,
+    sizePrefixTransformNode,
     stringTypeNode,
     structFieldTypeNode,
     structTypeNode,
@@ -59,21 +59,36 @@ test('it renders accounts', () => {
     expectType(
         accountNode({
             data: structTypeNode([
-                structFieldTypeNode({ name: 'amount', type: numberTypeNode('u64') }),
-                structFieldTypeNode({ name: 'decimals', type: numberTypeNode('u8') }),
+                structFieldTypeNode({ identifier: 'amount', type: integerTypeNode('u64') }),
+                structFieldTypeNode({ identifier: 'decimals', type: integerTypeNode('u8') }),
             ]),
-            name: 'mint',
+            identifier: 'mint',
         }),
         'type Mint = { amount: number /* u64 */; decimals: number /* u8 */ }',
     );
 });
 
-test('it ignores amount types', () => {
-    expectType(amountTypeNode(numberTypeNode('u32'), 2), 'number /* u32 */');
+test('it renders names from identifiers of any casing', () => {
+    expectType(
+        accountNode({
+            data: structTypeNode([structFieldTypeNode({ identifier: 'total_supply', type: integerTypeNode('u64') })]),
+            identifier: 'token_mint',
+        }),
+        'type TokenMint = { totalSupply: number /* u64 */ }',
+    );
 });
 
 test('it renders array types', () => {
     expectType(arrayTypeNode(stringTypeNode('utf8'), remainderCountNode()), 'Array<string>');
+});
+
+test('it ignores the count of array, set and map types', () => {
+    expectType(arrayTypeNode(stringTypeNode('utf8'), fixedCountNode(3)), 'Array<string>');
+    expectType(arrayTypeNode(stringTypeNode('utf8'), prefixedCountNode(integerTypeNode('u32'))), 'Array<string>');
+    expectType(
+        arrayTypeNode(integerTypeNode('u8'), sentinelCountNode(constantValueNodeFromString('base16', 'ff'))),
+        'Array<number /* u8 */>',
+    );
 });
 
 test('it renders boolean types', () => {
@@ -85,17 +100,17 @@ test('it renders bytes types', () => {
 });
 
 test('it ignores date time types', () => {
-    expectType(dateTimeTypeNode(numberTypeNode('u32')), 'number /* u32 */');
+    expectType(dateTimeTypeNode(integerTypeNode('i64')), 'number /* i64 */');
 });
 
 test('it renders defined types', () => {
-    expectType(definedTypeNode({ name: 'nameAlias', type: stringTypeNode('utf8') }), 'type NameAlias = string');
+    expectType(definedTypeNode({ identifier: 'nameAlias', type: stringTypeNode('utf8') }), 'type NameAlias = string');
     expectType(
         definedTypeNode({
-            name: 'person',
+            identifier: 'person',
             type: structTypeNode([
-                structFieldTypeNode({ name: 'name', type: definedTypeLinkNode('nameAlias') }),
-                structFieldTypeNode({ name: 'age', type: numberTypeNode('u32') }),
+                structFieldTypeNode({ identifier: 'name', type: definedTypeLinkNode('nameAlias') }),
+                structFieldTypeNode({ identifier: 'age', type: integerTypeNode('u32') }),
             ]),
         }),
         addFragmentImports(
@@ -106,22 +121,22 @@ test('it renders defined types', () => {
     );
     expectType(
         definedTypeNode({
-            name: 'direction',
+            identifier: 'direction',
             type: enumTypeNode([
-                enumEmptyVariantTypeNode('up'),
-                enumEmptyVariantTypeNode('right'),
-                enumEmptyVariantTypeNode('down'),
-                enumEmptyVariantTypeNode('left'),
+                enumVariantTypeNode('up'),
+                enumVariantTypeNode('right'),
+                enumVariantTypeNode('down'),
+                enumVariantTypeNode('left'),
             ]),
         }),
         'enum Direction { Up, Right, Down, Left }',
     );
     expectType(
         definedTypeNode({
-            name: 'command',
+            identifier: 'command',
             type: enumTypeNode([
-                enumTupleVariantTypeNode('write', tupleTypeNode([stringTypeNode('utf8')])),
-                enumTupleVariantTypeNode('yell', tupleTypeNode([stringTypeNode('utf8')])),
+                enumVariantTypeNode('write', { data: tupleTypeNode([stringTypeNode('utf8')]) }),
+                enumVariantTypeNode('yell', { data: tupleTypeNode([stringTypeNode('utf8')]) }),
             ]),
         }),
         'type Command = { __kind: "Write"; fields: [string] } | { __kind: "Yell"; fields: [string] }',
@@ -135,21 +150,25 @@ test('it renders defined type links', () => {
     );
 });
 
+test('it ignores duration types', () => {
+    expectType(durationTypeNode(integerTypeNode('i64')), 'number /* i64 */');
+});
+
 test('it renders enum types', () => {
     expectType(
         enumTypeNode([
-            enumEmptyVariantTypeNode('up'),
-            enumEmptyVariantTypeNode('right'),
-            enumEmptyVariantTypeNode('down'),
-            enumEmptyVariantTypeNode('left'),
+            enumVariantTypeNode('up'),
+            enumVariantTypeNode('right'),
+            enumVariantTypeNode('down'),
+            enumVariantTypeNode('left'),
         ]),
         '{ Up, Right, Down, Left }',
     );
     expectType(
         enumTypeNode([
-            enumEmptyVariantTypeNode('firstVariantInTheEnumWithALongName'),
-            enumEmptyVariantTypeNode('secondVariantInTheEnumWithALongName'),
-            enumEmptyVariantTypeNode('thirdVariantInTheEnumWithALongName'),
+            enumVariantTypeNode('firstVariantInTheEnumWithALongName'),
+            enumVariantTypeNode('secondVariantInTheEnumWithALongName'),
+            enumVariantTypeNode('thirdVariantInTheEnumWithALongName'),
         ]),
         `{
     FirstVariantInTheEnumWithALongName,
@@ -159,22 +178,21 @@ test('it renders enum types', () => {
     );
     expectType(
         enumTypeNode([
-            enumTupleVariantTypeNode('write', tupleTypeNode([stringTypeNode('utf8')])),
-            enumTupleVariantTypeNode('yell', tupleTypeNode([stringTypeNode('utf8')])),
+            enumVariantTypeNode('write', { data: tupleTypeNode([stringTypeNode('utf8')]) }),
+            enumVariantTypeNode('yell', { data: tupleTypeNode([stringTypeNode('utf8')]) }),
         ]),
         `{ __kind: "Write"; fields: [string] } | { __kind: "Yell"; fields: [string] }`,
     );
     expectType(
         enumTypeNode([
-            enumTupleVariantTypeNode('write', tupleTypeNode([stringTypeNode('utf8')])),
-            enumStructVariantTypeNode(
-                'move',
-                structTypeNode([
-                    structFieldTypeNode({ name: 'x', type: numberTypeNode('u64') }),
-                    structFieldTypeNode({ name: 'y', type: numberTypeNode('u64') }),
+            enumVariantTypeNode('write', { data: tupleTypeNode([stringTypeNode('utf8')]) }),
+            enumVariantTypeNode('move', {
+                data: structTypeNode([
+                    structFieldTypeNode({ identifier: 'x', type: integerTypeNode('u64') }),
+                    structFieldTypeNode({ identifier: 'y', type: integerTypeNode('u64') }),
                 ]),
-            ),
-            enumEmptyVariantTypeNode('quit'),
+            }),
+            enumVariantTypeNode('quit'),
         ]),
         `| { __kind: "Write"; fields: [string] }
     | { __kind: "Move"; x: number /* u64 */; y: number /* u64 */ }
@@ -182,54 +200,94 @@ test('it renders enum types', () => {
     );
 });
 
-test('it ignores fixed size types', () => {
-    expectType(fixedSizeTypeNode(stringTypeNode('utf8'), 42), 'string');
+test('it renders enum variants whose data is neither a struct nor a tuple under a fields field', () => {
+    expectType(
+        enumTypeNode([
+            enumVariantTypeNode('amount', { data: integerTypeNode('u64') }),
+            enumVariantTypeNode('person', { data: definedTypeLinkNode('person') }),
+        ]),
+        addFragmentImports(
+            fragment`{ __kind: "Amount"; fields: number /* u64 */ } | { __kind: "Person"; fields: Person }`,
+            'generatedTypes',
+            'Person',
+        ),
+    );
 });
 
-test('it ignores hidden prefix types', () => {
-    expectType(hiddenPrefixTypeNode(stringTypeNode('utf8'), []), 'string');
+test('it renders enum variants on multiple lines when they are too long', () => {
+    expectType(
+        enumTypeNode([
+            enumVariantTypeNode('move', {
+                data: structTypeNode([
+                    structFieldTypeNode({ identifier: 'firstFieldWithALongName', type: integerTypeNode('u64') }),
+                    structFieldTypeNode({ identifier: 'secondFieldWithALongName', type: integerTypeNode('u64') }),
+                    structFieldTypeNode({ identifier: 'thirdFieldWithALongName', type: integerTypeNode('u64') }),
+                ]),
+            }),
+            enumVariantTypeNode('quit'),
+        ]),
+        `| {
+        __kind: "Move";
+        firstFieldWithALongName: number /* u64 */;
+        secondFieldWithALongName: number /* u64 */;
+        thirdFieldWithALongName: number /* u64 */;
+    }
+    | { __kind: "Quit" }`,
+    );
 });
 
-test('it ignores hidden suffix types', () => {
-    expectType(hiddenSuffixTypeNode(stringTypeNode('utf8'), []), 'string');
+test('it ignores fixed-point information', () => {
+    expectType(fixedPointTypeNode(integerTypeNode('u64'), { scale: 9, unit: 'SOL' }), 'number /* u64 */');
+});
+
+test('it renders float types', () => {
+    expectType(floatTypeNode('f64'), 'number /* f64 */');
 });
 
 test('it renders instructions', () => {
     expectType(
         instructionNode({
-            arguments: [
-                instructionArgumentNode({ name: 'discriminator', type: numberTypeNode('u8') }),
-                instructionArgumentNode({ name: 'authority', type: publicKeyTypeNode() }),
-                instructionArgumentNode({ name: 'age', type: numberTypeNode('u32') }),
-                instructionArgumentNode({ name: 'name', type: stringTypeNode('utf8') }),
-            ],
-            name: 'initializePerson',
+            data: structTypeNode([
+                structFieldTypeNode({ identifier: 'discriminator', type: integerTypeNode('u8') }),
+                structFieldTypeNode({ identifier: 'authority', type: publicKeyTypeNode() }),
+                structFieldTypeNode({ identifier: 'age', type: integerTypeNode('u32') }),
+                structFieldTypeNode({ identifier: 'name', type: stringTypeNode('utf8') }),
+            ]),
+            identifier: 'initializePerson',
         }),
         'type InitializePersonInstruction = { discriminator: number /* u8 */; authority: Address; age: number /* u32 */; name: string }',
     );
 });
 
+test('it renders instructions whose data links to a defined type', () => {
+    expectType(
+        instructionNode({ data: definedTypeLinkNode('initializePersonArgs'), identifier: 'initializePerson' }),
+        addFragmentImports(
+            fragment`type InitializePersonInstruction = InitializePersonArgs`,
+            'generatedTypes',
+            'InitializePersonArgs',
+        ),
+    );
+});
+
+test('it renders instructions without data', () => {
+    expectType(instructionNode({ identifier: 'ping' }), 'type PingInstruction = {}');
+});
+
+test('it renders integer types', () => {
+    expectType(integerTypeNode('u32'), 'number /* u32 */');
+    expectType(integerTypeNode('shortU16'), 'number /* shortU16 */');
+});
+
 test('it renders map types', () => {
     expectType(
-        mapTypeNode(stringTypeNode('utf8'), numberTypeNode('u32'), fixedCountNode(3)),
+        mapTypeNode(stringTypeNode('utf8'), integerTypeNode('u32'), fixedCountNode(3)),
         'Map<string, number /* u32 */>',
     );
 });
 
-test('it renders number types', () => {
-    expectType(numberTypeNode('u32'), 'number /* u32 */');
-});
-
 test('it renders option types', () => {
     expectType(optionTypeNode(stringTypeNode('utf8')), 'Option<string>');
-});
-
-test('it ignores post-offset types', () => {
-    expectType(postOffsetTypeNode(stringTypeNode('utf8'), 4), 'string');
-});
-
-test('it ignores pre-offset types', () => {
-    expectType(preOffsetTypeNode(stringTypeNode('utf8'), 4), 'string');
 });
 
 test('it renders public key types', () => {
@@ -240,20 +298,8 @@ test('it renders remainder option types', () => {
     expectType(remainderOptionTypeNode(stringTypeNode('utf8')), 'Option<string>');
 });
 
-test('it ignores sentinel types', () => {
-    expectType(sentinelTypeNode(stringTypeNode('utf8'), constantValueNodeFromString('base16', 'ff')), 'string');
-});
-
 test('it renders set types', () => {
     expectType(setTypeNode(stringTypeNode('utf8'), fixedCountNode(3)), 'Set<string>');
-});
-
-test('it ignores size prefix types', () => {
-    expectType(sizePrefixTypeNode(stringTypeNode('utf8'), numberTypeNode('u32')), 'string');
-});
-
-test('it ignores sol amount types', () => {
-    expectType(solAmountTypeNode(numberTypeNode('u32')), 'number /* u32 */');
 });
 
 test('it renders string types', () => {
@@ -264,21 +310,21 @@ test('it renders struct types', () => {
     expectType(structTypeNode([]), '{}');
     expectType(
         structTypeNode([
-            structFieldTypeNode({ name: 'name', type: stringTypeNode('utf8') }),
-            structFieldTypeNode({ name: 'age', type: numberTypeNode('u32') }),
+            structFieldTypeNode({ identifier: 'name', type: stringTypeNode('utf8') }),
+            structFieldTypeNode({ identifier: 'age', type: integerTypeNode('u32') }),
         ]),
         '{ name: string; age: number /* u32 */ }',
     );
     expectType(
         structTypeNode([
-            structFieldTypeNode({ name: 'firstFieldInTheTupleWithALongName', type: stringTypeNode('utf8') }),
-            structFieldTypeNode({ name: 'secondFieldInTheTupleWithALongName', type: stringTypeNode('utf8') }),
-            structFieldTypeNode({ name: 'thirdFieldInTheTupleWithALongName', type: stringTypeNode('utf8') }),
+            structFieldTypeNode({ identifier: 'firstFieldInTheTupleWithALongName', type: stringTypeNode('utf8') }),
+            structFieldTypeNode({ identifier: 'secondFieldInTheTupleWithALongName', type: stringTypeNode('utf8') }),
+            structFieldTypeNode({ identifier: 'thirdFieldInTheTupleWithALongName', type: stringTypeNode('utf8') }),
             structFieldTypeNode({
-                name: 'nestedStruct',
+                identifier: 'nestedStruct',
                 type: structTypeNode([
-                    structFieldTypeNode({ name: 'name', type: stringTypeNode('utf8') }),
-                    structFieldTypeNode({ name: 'age', type: numberTypeNode('u32') }),
+                    structFieldTypeNode({ identifier: 'name', type: stringTypeNode('utf8') }),
+                    structFieldTypeNode({ identifier: 'age', type: integerTypeNode('u32') }),
                 ]),
             }),
         ]),
@@ -291,14 +337,29 @@ test('it renders struct types', () => {
     );
 });
 
+test('it ignores transforms', () => {
+    const string = (transforms: Parameters<typeof stringTypeNode>[1]) => stringTypeNode('utf8', transforms);
+    expectType(string({ transforms: [fixedSizeTransformNode(42)] }), 'string');
+    expectType(string({ transforms: [hiddenPrefixTransformNode([])] }), 'string');
+    expectType(string({ transforms: [hiddenSuffixTransformNode([])] }), 'string');
+    expectType(string({ transforms: [postOffsetTransformNode(4)] }), 'string');
+    expectType(string({ transforms: [preOffsetTransformNode(4)] }), 'string');
+    expectType(string({ transforms: [sentinelTransformNode(constantValueNodeFromString('base16', 'ff'))] }), 'string');
+    expectType(string({ transforms: [sizePrefixTransformNode(integerTypeNode('u32'))] }), 'string');
+    expectType(
+        string({ transforms: [sizePrefixTransformNode(integerTypeNode('u32')), fixedSizeTransformNode(64)] }),
+        'string',
+    );
+});
+
 test('it renders tuple types', () => {
-    expectType(tupleTypeNode([stringTypeNode('utf8'), numberTypeNode('u32')]), '[string, number /* u32 */]');
+    expectType(tupleTypeNode([stringTypeNode('utf8'), integerTypeNode('u32')]), '[string, number /* u32 */]');
     expectType(
         tupleTypeNode([
             definedTypeLinkNode('firstItemInTheTupleWithALongName'),
             definedTypeLinkNode('secondItemInTheTupleWithALongName'),
             definedTypeLinkNode('thirdItemInTheTupleWithALongName'),
-            tupleTypeNode([stringTypeNode('utf8'), numberTypeNode('u32')]),
+            tupleTypeNode([stringTypeNode('utf8'), integerTypeNode('u32')]),
         ]),
         addFragmentImports(
             fragment`[
@@ -317,6 +378,6 @@ test('it renders tuple types', () => {
     );
 });
 
-test('it renders ZeroableOption types', () => {
+test('it renders zeroable option types', () => {
     expectType(zeroableOptionTypeNode(stringTypeNode('utf8')), 'Option<string>');
 });

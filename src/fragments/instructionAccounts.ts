@@ -1,18 +1,19 @@
-import { camelCase, InstructionAccountNode } from '@codama/nodes';
+import { camelCase } from '@codama/fragments/casing';
+import { getTextNodeContent, InstructionAccountNode } from '@codama/nodes';
 
 import { Fragment, getTableFragment } from '../utils';
 
 export function getInstructionAccountsFragment(accounts: InstructionAccountNode[]): Fragment | undefined {
     if (accounts.length === 0) return;
 
-    const hasDescriptions = (accounts ?? []).some(account => account.docs && account.docs.length > 0);
+    const hasDescriptions = accounts.some(account => account.docs && getTextNodeContent(account.docs));
     const accountHeaders = ['Name', 'Signer', 'Writable', 'Required', ...(hasDescriptions ? ['Description'] : [])];
     const accountRows = accounts.map(account => [
-        `\`${camelCase(account.name)}\``,
+        `\`${camelCase(account.identifier)}\``,
         formatBoolean(account.isSigner ?? false),
         formatBoolean(account.isWritable ?? false),
         formatBoolean(!(account.isOptional ?? false)),
-        ...(hasDescriptions ? [(account.docs ?? []).join(' ')] : []),
+        ...(hasDescriptions ? [account.docs ? getTextNodeContent(account.docs) : ''] : []),
     ]);
 
     return getTableFragment(accountHeaders, accountRows);

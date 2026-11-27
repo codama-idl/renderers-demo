@@ -1,4 +1,5 @@
-import { PdaNode, titleCase } from '@codama/nodes';
+import { titleCase } from '@codama/fragments/casing';
+import { PdaNode } from '@codama/nodes';
 
 import { Fragment, fragment, getFrontmatterFragment, getPageFragment, getTitleAndDescriptionFragment } from '../utils';
 import { TypeVisitor } from '../visitors/getTypeVisitor';
@@ -6,7 +7,7 @@ import { ValueVisitor } from '../visitors/getValueVisitor';
 import { getPdaSeedsFragment } from './pdaSeeds';
 
 export function getPdaPageFragment(node: PdaNode, typeVisitor: TypeVisitor, valueVisitor: ValueVisitor): Fragment {
-    const title = `${titleCase(node.name)} PDA`;
+    const title = `${titleCase(node.identifier)} PDA`;
     const seeds = getPdaSeedsFragment(node.seeds ?? [], typeVisitor, valueVisitor);
 
     return getPageFragment(

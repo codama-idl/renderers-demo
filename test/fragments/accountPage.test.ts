@@ -2,7 +2,7 @@ import {
     accountNode,
     constantPdaSeedNodeFromString,
     definedTypeLinkNode,
-    numberTypeNode,
+    integerTypeNode,
     pdaNode,
     publicKeyTypeNode,
     structFieldTypeNode,
@@ -18,9 +18,9 @@ import { getTypeVisitor } from '../../src/visitors';
 
 test('it renders account pages', () => {
     const node = accountNode({
-        data: structTypeNode([structFieldTypeNode({ name: 'maxSupply', type: numberTypeNode('u64') })]),
-        docs: ['This is some description for the mint account.', 'It can use multiple lines.'],
-        name: 'mint',
+        data: structTypeNode([structFieldTypeNode({ identifier: 'maxSupply', type: integerTypeNode('u64') })]),
+        docs: 'This is some description for the mint account.\nIt can use multiple lines.',
+        identifier: 'mint',
     });
 
     const result = getAccountPageFragment(node, getTypeVisitor());
@@ -43,7 +43,7 @@ type Mint = { maxSupply: number /* u64 */ }
 });
 
 test('it renders a fixed size paragraph.', () => {
-    const node = accountNode({ name: 'token' });
+    const node = accountNode({ identifier: 'token' });
     const result = getAccountPageFragment(node, getTypeVisitor(), 42);
 
     expect(result).toStrictEqual(fragment`---
@@ -64,11 +64,11 @@ This account has a fixed size of 42 bytes.`);
 
 test('it renders PDA sections', () => {
     const node = accountNode({
-        data: structTypeNode([structFieldTypeNode({ name: 'amount', type: numberTypeNode('u64') })]),
-        name: 'token',
+        data: structTypeNode([structFieldTypeNode({ identifier: 'amount', type: integerTypeNode('u64') })]),
+        identifier: 'token',
     });
     const pda = pdaNode({
-        name: 'associatedToken',
+        identifier: 'associatedToken',
         seeds: [
             variablePdaSeedNode('mint', publicKeyTypeNode()),
             variablePdaSeedNode('owner', publicKeyTypeNode()),
@@ -108,8 +108,8 @@ const [address, bump] = await findAssociatedTokenPda({ mint, owner });
 
 test('it renders see also sections', () => {
     const node = accountNode({
-        data: structTypeNode([structFieldTypeNode({ name: 'maxSupply', type: definedTypeLinkNode('someType') })]),
-        name: 'mint',
+        data: structTypeNode([structFieldTypeNode({ identifier: 'maxSupply', type: definedTypeLinkNode('someType') })]),
+        identifier: 'mint',
     });
 
     const result = getAccountPageFragment(node, getTypeVisitor());
@@ -135,4 +135,15 @@ type Mint = { maxSupply: SomeType }
             f => addFragmentImports(f, 'generatedTypes', 'SomeType'),
         ),
     );
+});
+
+test('it renders PDA seed names of any casing', () => {
+    const node = accountNode({ identifier: 'vault' });
+    const pda = pdaNode({
+        identifier: 'user_vault',
+        seeds: [variablePdaSeedNode('vault_owner', publicKeyTypeNode())],
+    });
+    const result = getAccountPageFragment(node, getTypeVisitor(), undefined, pda);
+
+    expect(result.content).toContain('const [address, bump] = await findUserVaultPda({ vaultOwner });');
 });

@@ -6,6 +6,7 @@ import {
     instructionNode,
     pdaNode,
     programNode,
+    textNode,
 } from '@codama/nodes';
 import { expect, test } from 'vitest';
 
@@ -14,29 +15,29 @@ import { fragment } from '../../src/utils';
 
 test('it renders program pages', () => {
     const node = programNode({
-        accounts: [accountNode({ name: 'mint' }), accountNode({ name: 'token' })],
+        accounts: [accountNode({ identifier: 'mint' }), accountNode({ identifier: 'token' })],
         definedTypes: [
-            definedTypeNode({ name: 'accountState', type: enumTypeNode([]) }),
-            definedTypeNode({ name: 'authorityType', type: enumTypeNode([]) }),
+            definedTypeNode({ identifier: 'accountState', type: enumTypeNode([]) }),
+            definedTypeNode({ identifier: 'authorityType', type: enumTypeNode([]) }),
         ],
-        docs: ['This is some description for the token program.', 'It can use multiple lines.'],
+        docs: 'This is some description for the token program.\nIt can use multiple lines.',
         errors: [
-            errorNode({ code: 0, message: 'Lamport balance below rent-exempt threshold', name: 'notRentExempt' }),
-            errorNode({ code: 1, message: 'Insufficient funds', name: 'insufficientFunds' }),
-            errorNode({ code: 2, message: 'Invalid Mint account', name: 'invalidMint' }),
-            errorNode({ code: 3, message: 'Account not associated with this Mint', name: 'mintMismatch' }),
-            errorNode({ code: 4, message: 'Owner does not match', name: 'ownerMismatch' }),
+            errorNode({ code: 0, identifier: 'notRentExempt', message: 'Lamport balance below rent-exempt threshold' }),
+            errorNode({ code: 1, identifier: 'insufficientFunds', message: 'Insufficient funds' }),
+            errorNode({ code: 2, identifier: 'invalidMint', message: 'Invalid Mint account' }),
+            errorNode({ code: 3, identifier: 'mintMismatch', message: 'Account not associated with this Mint' }),
+            errorNode({ code: 4, identifier: 'ownerMismatch', message: 'Owner does not match' }),
         ],
+        identifier: 'token',
         instructions: [
-            instructionNode({ name: 'initializeMint' }),
-            instructionNode({ name: 'initializeAccount' }),
-            instructionNode({ name: 'mintTo' }),
-            instructionNode({ name: 'transfer' }),
-            instructionNode({ name: 'revoke' }),
-            instructionNode({ name: 'burn' }),
+            instructionNode({ identifier: 'initializeMint' }),
+            instructionNode({ identifier: 'initializeAccount' }),
+            instructionNode({ identifier: 'mintTo' }),
+            instructionNode({ identifier: 'transfer' }),
+            instructionNode({ identifier: 'revoke' }),
+            instructionNode({ identifier: 'burn' }),
         ],
-        name: 'token',
-        pdas: [pdaNode({ name: 'associatedToken', seeds: [] })],
+        pdas: [pdaNode({ identifier: 'associatedToken', seeds: [] })],
         publicKey: 'TokenKegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
         version: '1.2.3',
     });
@@ -93,7 +94,7 @@ It can use multiple lines.
 });
 
 test('it renders pages for empty program', () => {
-    const node = programNode({ name: 'token', publicKey: 'TokenKegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' });
+    const node = programNode({ identifier: 'token', publicKey: 'TokenKegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' });
 
     const result = getProgramPageFragment(node);
 
@@ -128,4 +129,21 @@ _This program has no defined types._
 ## Errors
 
 _This program has no errors._`);
+});
+
+test('it renders names and messages of any casing and form', () => {
+    const node = programNode({
+        accounts: [accountNode({ identifier: 'token_account' })],
+        errors: [
+            errorNode({ code: 0, identifier: 'not_rent_exempt', message: textNode({ content: 'Not rent exempt' }) }),
+        ],
+        identifier: 'token_metadata',
+        publicKey: 'TokenKegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+    });
+
+    const result = getProgramPageFragment(node);
+
+    expect(result.content).toContain('# Token Metadata Program');
+    expect(result.content).toContain('- [Token Account](accounts/tokenAccount.md)');
+    expect(result.content).toContain('| Not Rent Exempt | `0`  | Not rent exempt |');
 });

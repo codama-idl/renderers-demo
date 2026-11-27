@@ -1,4 +1,5 @@
-import { AccountNode, PdaNode, titleCase } from '@codama/nodes';
+import { titleCase } from '@codama/fragments/casing';
+import { AccountNode, PdaNode } from '@codama/nodes';
 import { visit } from '@codama/visitors-core';
 
 import {
@@ -18,7 +19,7 @@ export function getAccountPageFragment(
     size?: number,
     pda?: PdaNode,
 ): Fragment {
-    const title = titleCase(node.name);
+    const title = titleCase(node.identifier);
     const type = visit(node, typeVisitor);
 
     return getPageFragment(

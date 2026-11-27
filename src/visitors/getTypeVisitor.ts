@@ -1,30 +1,29 @@
+import { CODAMA_ERROR__RENDERERS__UNSUPPORTED_NODE, CodamaError } from '@codama/errors';
+import { camelCase, pascalCase } from '@codama/fragments/casing';
 import {
-    camelCase,
     definedTypeNode,
-    enumStructVariantTypeNode,
     isNode,
     isScalarEnum,
-    pascalCase,
     REGISTERED_TYPE_NODE_KINDS,
-    resolveNestedTypeNode,
-    structFieldTypeNode,
     structTypeNode,
-    structTypeNodeFromInstructionArgumentNodes,
+    TypeNode,
 } from '@codama/nodes';
 import {
     extendVisitor,
-    findLastNodeFromPath,
     NodeStack,
     pipe,
     recordNodeStackVisitor,
     staticVisitor,
     visit,
+    Visitor,
 } from '@codama/visitors-core';
 
 import { addFragmentImports, Fragment, fragment, mergeFragments } from '../utils';
 
 export type TypeVisitor = ReturnType<typeof getTypeVisitor>;
 
+// Here, we ignore the `transforms` of type nodes (e.g. size prefixes, fixed sizes, offsets or sentinels)
+// as well as the `count` of arrays, sets and maps. They affect how the data is encoded, not its shape.
 export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string } = {}) {
     const typeIndent = input.typeIndent ?? '    ';
     const stack = input.stack ?? new NodeStack();
@@ -38,24 +37,25 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
     };
 
     return pipe(
-        staticVisitor(() => fragment``, {
-            keys: [
-                ...REGISTERED_TYPE_NODE_KINDS,
-                'definedTypeLinkNode',
-                'definedTypeNode',
-                'accountNode',
-                'instructionNode',
-            ],
-        }),
+        // Every type node is rendered below, so this only throws for node kinds added by later versions of Codama.
+        staticVisitor(
+            (): Fragment => {
+                throw new CodamaError(CODAMA_ERROR__RENDERERS__UNSUPPORTED_NODE, { path: stack.getPath() });
+            },
+            {
+                keys: [
+                    ...REGISTERED_TYPE_NODE_KINDS,
+                    'definedTypeLinkNode',
+                    'definedTypeNode',
+                    'accountNode',
+                    'instructionNode',
+                ],
+            },
+        ),
         visitor =>
             extendVisitor(visitor, {
                 visitAccount(node, { self }) {
-                    return visit(definedTypeNode({ name: node.name, type: node.data }), self);
-                },
-
-                visitAmountType(node, { self }) {
-                    // Here, we ignore decimal and unit information for simplicity.
-                    return visit(node.number, self);
+                    return visit(definedTypeNode({ identifier: node.identifier, type: node.data }), self);
                 },
 
                 visitArrayType(node, { self }) {
@@ -78,71 +78,34 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                 visitDefinedType(node, { self }) {
                     const type = visit(node.type, self);
                     return isNode(node.type, 'enumTypeNode') && isScalarEnum(node.type)
-                        ? fragment`enum ${pascalCase(node.name)} ${type}`
-                        : fragment`type ${pascalCase(node.name)} = ${type}`;
+                        ? fragment`enum ${pascalCase(node.identifier)} ${type}`
+                        : fragment`type ${pascalCase(node.identifier)} = ${type}`;
                 },
 
                 visitDefinedTypeLink(node) {
-                    const typeName = pascalCase(node.name);
+                    const typeName = pascalCase(node.identifier);
                     return addFragmentImports(fragment`${typeName}`, 'generatedTypes', typeName);
                 },
 
-                visitEnumEmptyVariantType(node) {
-                    const nodePath = stack.getPath('enumEmptyVariantTypeNode');
-                    const enumParent = findLastNodeFromPath(nodePath, 'enumTypeNode');
-                    if (!enumParent) throw new Error('Enum parent not found');
-
-                    if (isScalarEnum(enumParent)) return fragment`${pascalCase(node.name)}`;
-                    return fragment`{ __kind: "${pascalCase(node.name)}" }`;
-                },
-
-                visitEnumStructVariantType(node, { self }) {
-                    const fields = resolveNestedTypeNode(node.struct).fields ?? [];
-                    const kindField = fragment`__kind: "${pascalCase(node.name)}"`;
-
-                    const inlinedStruct = pipe(
-                        fields.map(field => visit(field, self)),
-                        fs => [kindField, ...fs],
-                        fs => mergeFragments(fs, cs => `{ ${cs.join('; ')} }`),
-                    );
-                    if (shouldInline(inlinedStruct)) return inlinedStruct;
-
-                    indentLevel++;
-                    const result = pipe(
-                        fields.map(field => visit(field, self)),
-                        fs => [kindField, ...fs],
-                        fs => mergeFragments(fs, cs => cs.map(c => `${indent()}${c};\n`).join('')),
-                    );
-                    indentLevel--;
-                    return fragment`{\n${result}${indent()}}`;
-                },
-
-                visitEnumTupleVariantType(node, { self }) {
-                    const structVariant = enumStructVariantTypeNode(
-                        node.name,
-                        structTypeNode([structFieldTypeNode({ name: 'fields', type: node.tuple })]),
-                        node.discriminator,
-                    );
-                    return visit(structVariant, self);
+                visitDurationType(node, { self }) {
+                    // Here, we ignore duration information for simplicity.
+                    return visit(node.number, self);
                 },
 
                 visitEnumType(node, { self }) {
+                    // Scalar enums only list the names of their variants, e.g. `{ Red, Green, Blue }`.
                     if (isScalarEnum(node)) {
-                        const inlinedEnum = pipe(
-                            (node.variants ?? []).map(v => visit(v, self)),
-                            fs => mergeFragments(fs, cs => `{ ${cs.join(', ')} }`),
-                        );
+                        const variantNames = (node.variants ?? []).map(v => fragment`${pascalCase(v.identifier)}`);
+                        const inlinedEnum = mergeFragments(variantNames, cs => `{ ${cs.join(', ')} }`);
                         if (shouldInline(inlinedEnum)) return inlinedEnum;
 
                         indentLevel++;
-                        const variants = pipe(
-                            (node.variants ?? []).map(field => visit(field, self)),
-                            fs => mergeFragments(fs, cs => cs.map(c => `${indent()}${c},\n`).join('')),
-                        );
+                        const variants = mergeFragments(variantNames, cs => cs.map(c => `${indent()}${c},\n`).join(''));
                         indentLevel--;
                         return fragment`{\n${variants}${indent()}}`;
                     }
 
+                    // Data enums are unions of their variants, e.g. `{ __kind: "Red" } | { __kind: "Rgb"; … }`.
                     const inlinedEnum = pipe(
                         (node.variants ?? []).map(v => visit(v, self)),
                         fs => mergeFragments(fs, cs => cs.join(' | ')),
@@ -151,34 +114,45 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
 
                     indentLevel++;
                     const variants = pipe(
-                        (node.variants ?? []).map(field => visit(field, self)),
+                        (node.variants ?? []).map(v => visit(v, self)),
                         fs => mergeFragments(fs, cs => cs.map(c => `| ${c}`).join(`\n${indent()}`)),
                     );
                     indentLevel--;
                     return variants;
                 },
 
-                visitFixedSizeType(node, { self }) {
-                    // Here, we ignore fixed size information for simplicity.
-                    return visit(node.type, self);
+                visitEnumVariantType(node, { self }) {
+                    const kindField = fragment`__kind: "${pascalCase(node.identifier)}"`;
+                    const getFields = () => [kindField, ...getEnumVariantDataFields(node.data, self)];
+
+                    const inlinedVariant = mergeFragments(getFields(), cs => `{ ${cs.join('; ')} }`);
+                    if (shouldInline(inlinedVariant)) return inlinedVariant;
+
+                    indentLevel++;
+                    const fields = mergeFragments(getFields(), cs => cs.map(c => `${indent()}${c};\n`).join(''));
+                    indentLevel--;
+                    return fragment`{\n${fields}${indent()}}`;
                 },
 
-                visitHiddenPrefixType(node, { self }) {
-                    // Here, we ignore hidden prefix information for simplicity.
-                    return visit(node.type, self);
+                visitFixedPointType(node, { self }) {
+                    // Here, we ignore the scale and unit of fixed-point numbers for simplicity.
+                    return visit(node.number, self);
                 },
 
-                visitHiddenSuffixType(node, { self }) {
-                    // Here, we ignore hidden suffix information for simplicity.
-                    return visit(node.type, self);
+                visitFloatType(node) {
+                    return fragment`number /* ${node.format} */`;
                 },
 
                 visitInstruction(node, { self }) {
-                    const definedTypeArguments = definedTypeNode({
-                        name: `${camelCase(node.name)}Instruction`,
-                        type: structTypeNodeFromInstructionArgumentNodes(node.arguments ?? []),
+                    const definedTypeData = definedTypeNode({
+                        identifier: `${camelCase(node.identifier)}Instruction`,
+                        type: node.data ?? structTypeNode([]),
                     });
-                    return visit(definedTypeArguments, self);
+                    return visit(definedTypeData, self);
+                },
+
+                visitIntegerType(node) {
+                    return fragment`number /* ${node.format} */`;
                 },
 
                 visitMapType(node, { self }) {
@@ -187,22 +161,8 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                     return fragment`Map<${key}, ${value}>`;
                 },
 
-                visitNumberType(node) {
-                    return fragment`number /* ${node.format} */`;
-                },
-
                 visitOptionType(node, { self }) {
                     return fragment`Option<${visit(node.item, self)}>`;
-                },
-
-                visitPostOffsetType(node, { self }) {
-                    // Here, we ignore post offset information for simplicity.
-                    return visit(node.type, self);
-                },
-
-                visitPreOffsetType(node, { self }) {
-                    // Here, we ignore pre offset information for simplicity.
-                    return visit(node.type, self);
                 },
 
                 visitPublicKeyType() {
@@ -213,23 +173,8 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                     return fragment`Option<${visit(node.item, self)}>`;
                 },
 
-                visitSentinelType(node, { self }) {
-                    // Here, we ignore sentinel information for simplicity.
-                    return visit(node.type, self);
-                },
-
                 visitSetType(node, { self }) {
                     return fragment`Set<${visit(node.item, self)}>`;
-                },
-
-                visitSizePrefixType(node, { self }) {
-                    // Here, we ignore size prefix information for simplicity.
-                    return visit(node.type, self);
-                },
-
-                visitSolAmountType(node, { self }) {
-                    // Here, we ignore sol amount information for simplicity.
-                    return visit(node.number, self);
                 },
 
                 visitStringType() {
@@ -237,7 +182,7 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                 },
 
                 visitStructFieldType(node, { self }) {
-                    return fragment`${camelCase(node.name)}: ${visit(node.type, self)}`;
+                    return fragment`${camelCase(node.identifier)}: ${visit(node.type, self)}`;
                 },
 
                 visitStructType(node, { self }) {
@@ -280,4 +225,17 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
             }),
         visitor => recordNodeStackVisitor(visitor, stack),
     );
+}
+
+/**
+ * Renders the data of an enum variant as fields to list after its `__kind` field.
+ * Struct data lists its own fields, whereas any other data is rendered under a single `fields` field.
+ */
+function getEnumVariantDataFields(
+    data: TypeNode | undefined,
+    self: Visitor<Fragment, TypeNode['kind'] | 'structFieldTypeNode'>,
+): Fragment[] {
+    if (!data) return [];
+    if (isNode(data, 'structTypeNode')) return (data.fields ?? []).map(field => visit(field, self));
+    return [fragment`fields: ${visit(data, self)}`];
 }

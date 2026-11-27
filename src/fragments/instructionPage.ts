@@ -1,4 +1,5 @@
-import { InstructionNode, titleCase } from '@codama/nodes';
+import { titleCase } from '@codama/fragments/casing';
+import { InstructionNode, isNode } from '@codama/nodes';
 import { visit } from '@codama/visitors-core';
 
 import {
@@ -13,10 +14,10 @@ import { TypeVisitor } from '../visitors/getTypeVisitor';
 import { getInstructionAccountsFragment } from './instructionAccounts';
 
 export function getInstructionPageFragment(node: InstructionNode, typeVisitor: TypeVisitor): Fragment {
-    const title = titleCase(node.name);
+    const title = titleCase(node.identifier);
     const type = visit(node, typeVisitor);
     const accountsFragment = getInstructionAccountsFragment(node.accounts ?? []);
-    const hasArguments = (node.arguments ?? []).length > 0;
+    const hasArguments = node.data && !(isNode(node.data, 'structTypeNode') && (node.data.fields ?? []).length === 0);
 
     return getPageFragment(
         [

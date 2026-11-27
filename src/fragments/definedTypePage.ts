@@ -1,4 +1,5 @@
-import { DefinedTypeNode, titleCase } from '@codama/nodes';
+import { titleCase } from '@codama/fragments/casing';
+import { DefinedTypeNode } from '@codama/nodes';
 import { visit } from '@codama/visitors-core';
 
 import {
@@ -12,7 +13,7 @@ import {
 import { TypeVisitor } from '../visitors/getTypeVisitor';
 
 export function getDefinedTypePageFragment(node: DefinedTypeNode, typeVisitor: TypeVisitor): Fragment {
-    const title = titleCase(node.name);
+    const title = titleCase(node.identifier);
     const type = visit(node, typeVisitor);
 
     return getPageFragment(

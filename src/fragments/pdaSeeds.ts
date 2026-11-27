@@ -1,5 +1,6 @@
-import { camelCase, isNode, PdaSeedNode } from '@codama/nodes';
-import { mapFragmentContent } from '@codama/renderers-core';
+import { mapFragmentContent } from '@codama/fragments';
+import { camelCase } from '@codama/fragments/casing';
+import { getTextNodeContent, isNode, PdaSeedNode } from '@codama/nodes';
 import { pipe, visit } from '@codama/visitors-core';
 
 import { Fragment, getTableFragment } from '../utils';
@@ -22,7 +23,7 @@ export function getPdaSeedsFragment(
         );
 
         if (isNode(seed, 'variablePdaSeedNode')) {
-            return [`\`${camelCase(seed.name)}\``, type, seed.docs?.join(' ') ?? ''];
+            return [`\`${camelCase(seed.identifier)}\``, type, seed.docs ? getTextNodeContent(seed.docs) : ''];
         }
 
         const value = pipe(visit(seed.value, valueVisitor), f => mapFragmentContent(f, c => `\`${c}\``));

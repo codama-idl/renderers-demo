@@ -1,7 +1,7 @@
 import {
     definedTypeLinkNode,
     definedTypeNode,
-    numberTypeNode,
+    integerTypeNode,
     structFieldTypeNode,
     structTypeNode,
 } from '@codama/nodes';
@@ -14,9 +14,9 @@ import { getTypeVisitor } from '../../src/visitors';
 
 test('it renders defined type pages', () => {
     const node = definedTypeNode({
-        docs: ['This is some description for the counter type.', 'It can use multiple lines.'],
-        name: 'counter',
-        type: structTypeNode([structFieldTypeNode({ name: 'value', type: numberTypeNode('u32') })]),
+        docs: 'This is some description for the counter type.\nIt can use multiple lines.',
+        identifier: 'counter',
+        type: structTypeNode([structFieldTypeNode({ identifier: 'value', type: integerTypeNode('u32') })]),
     });
 
     const result = getDefinedTypePageFragment(node, getTypeVisitor());
@@ -40,8 +40,8 @@ type Counter = { value: number /* u32 */ }
 
 test('it renders see also sections', () => {
     const node = definedTypeNode({
-        name: 'counter',
-        type: structTypeNode([structFieldTypeNode({ name: 'value', type: definedTypeLinkNode('someType') })]),
+        identifier: 'counter',
+        type: structTypeNode([structFieldTypeNode({ identifier: 'value', type: definedTypeLinkNode('someType') })]),
     });
 
     const result = getDefinedTypePageFragment(node, getTypeVisitor());

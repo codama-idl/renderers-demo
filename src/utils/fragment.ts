@@ -1,5 +1,5 @@
-import { Docs } from '@codama/nodes';
-import { BaseFragment, createFragmentTemplate, mapFragmentContent, Path } from '@codama/renderers-core';
+import { BaseFragment, createFragmentTemplate, mapFragmentContent, Path } from '@codama/fragments';
+import { getTextNodeContent, TextNode } from '@codama/nodes';
 
 import {
     addToImportMap,
@@ -43,10 +43,10 @@ export function getFrontmatterFragment(title: string, description: string): Frag
     return fragment`---\ntitle: ${title}\ndescription: ${description}\n---`;
 }
 
-export function getTitleAndDescriptionFragment(title: string, docs?: Docs): Fragment {
-    return mergeFragments(
-        [fragment`# ${title}`, docs && docs.length > 0 ? fragment`${docs.join('\n')}` : undefined],
-        cs => cs.join('\n\n'),
+export function getTitleAndDescriptionFragment(title: string, docs?: TextNode | string): Fragment {
+    const description = docs ? getTextNodeContent(docs) : '';
+    return mergeFragments([fragment`# ${title}`, description ? fragment`${description}` : undefined], cs =>
+        cs.join('\n\n'),
     );
 }
 
