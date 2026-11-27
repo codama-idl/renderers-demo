@@ -32,7 +32,7 @@ Add the following script to your Codama configuration file.
 
 This renders Markdown documentation for your program in the `docs` folder: a `README.md` overview page, and one page per account, defined type, instruction and PDA.
 
-This renderer requires IDLs of the Codama v2 standard. To render a v1 IDL, upgrade it once with `codama upgrade path/to/idl.json`, or add `@codama/upgrade` as a `before` visitor of your configuration.
+This renderer requires IDLs of the Codama v2 standard. To render a v1 IDL, upgrade it once with `codama upgrade path/to/idl.json`, or install `@codama/upgrade` and add it as a `before` visitor of your configuration.
 
 ```json
 {
@@ -42,7 +42,7 @@ This renderer requires IDLs of the Codama v2 standard. To render a v1 IDL, upgra
 
 ## Options
 
-The `renderVisitor` accepts the following options as a second argument.
+The `renderVisitor` accepts the following options as a second argument, e.g. `"args": ["docs", { "extension": "mdx" }]`.
 
 | Name                          | Type      | Default    | Description                                                     |
 | ----------------------------- | --------- | ---------- | --------------------------------------------------------------- |
