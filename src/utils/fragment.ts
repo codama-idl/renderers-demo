@@ -10,6 +10,10 @@ import {
     PathOverrides,
 } from './importMap';
 
+/**
+ * An immutable piece of rendered content, along with the imports it requires. Fragments compose through
+ * {@link fragment} templates and {@link mergeFragments}, which merge their imports along the way.
+ */
 export type Fragment = BaseFragment & Readonly<{ imports: ImportMap }>;
 
 function createFragment(content: string): Fragment {
@@ -20,10 +24,27 @@ function isFragment(value: unknown): value is Fragment {
     return typeof value === 'object' && value !== null && 'content' in value;
 }
 
+/**
+ * Creates a fragment from a template literal. Interpolated fragments contribute their imports to the result.
+ *
+ * @example
+ * ```ts
+ * const type = fragment`Option<${visit(node.item, typeVisitor)}>`;
+ * ```
+ */
 export function fragment(template: TemplateStringsArray, ...items: unknown[]): Fragment {
     return createFragmentTemplate(template, items, isFragment, mergeFragments);
 }
 
+/**
+ * Merges fragments into one, combining their contents with the given function and their imports together.
+ * `undefined` fragments are ignored.
+ *
+ * @example
+ * ```ts
+ * const list = mergeFragments(items, contents => contents.join('\n'));
+ * ```
+ */
 export function mergeFragments(
     fragments: (Fragment | undefined)[],
     mergeContent: (contents: string[]) => string,
@@ -35,14 +56,24 @@ export function mergeFragments(
     });
 }
 
+/**
+ * Returns a copy of the fragment that also imports the given names from the given path.
+ *
+ * @example
+ * ```ts
+ * addFragmentImports(fragment`${typeName}`, 'generatedTypes', typeName);
+ * ```
+ */
 export function addFragmentImports(fragment: Fragment, path: Path, names: string[] | string): Fragment {
     return Object.freeze({ ...fragment, imports: addToImportMap(fragment.imports, path, names) });
 }
 
+/** Renders the YAML frontmatter of a page, used by static site generators for its title and description. */
 export function getFrontmatterFragment(title: string, description: string): Fragment {
     return fragment`---\ntitle: ${title}\ndescription: ${description}\n---`;
 }
 
+/** Renders the main heading of a page, followed by the docs of its node when there are any. */
 export function getTitleAndDescriptionFragment(title: string, docs?: TextNode | string): Fragment {
     const description = docs ? getTextNodeContent(docs) : '';
     return mergeFragments([fragment`# ${title}`, description ? fragment`${description}` : undefined], cs =>
@@ -50,10 +81,17 @@ export function getTitleAndDescriptionFragment(title: string, docs?: TextNode | 
     );
 }
 
+/** Wraps a fragment in a fenced code block, e.g. with the `ts` language for syntax highlighting. */
 export function getCodeBlockFragment(code: Fragment, language: string = ''): Fragment {
     return mapFragmentContent(code, c => `\`\`\`${language}\n${c}\n\`\`\``);
 }
 
+/**
+ * Renders a Markdown table whose columns are padded to align, so that the table also reads well as plain text.
+ *
+ * @param headers - The header of each column.
+ * @param rows - The cells of each row, in the order of the headers.
+ */
 export function getTableFragment(headers: (Fragment | string)[], rows: (Fragment | string)[][]): Fragment {
     const toFragment = (cell: Fragment | string) => (typeof cell === 'string' ? createFragment(cell) : cell);
     const headerFragments = headers.map(toFragment);
@@ -74,10 +112,20 @@ export function getTableFragment(headers: (Fragment | string)[], rows: (Fragment
     );
 }
 
+/**
+ * Renders lines as an HTML comment, which Markdown does not display, e.g. to add an
+ * "auto-generated, do not edit" notice at the top of pages.
+ */
 export function getCommentFragment(lines: string[]): Fragment {
     return fragment`<!--\n${lines.join('\n')}\n-->`;
 }
 
+/**
+ * Assembles the sections of a page, and lists the imports they collected as links in a final "See also" section.
+ *
+ * @param fragments - The sections of the page, separated by blank lines.
+ * @param pathOverrides - Where the folders of imported nodes are, relative to the page. See {@link getImportMapLinks}.
+ */
 export function getPageFragment(fragments: Fragment[], pathOverrides: PathOverrides = {}): Fragment {
     const page = mergeFragments(fragments, cs => cs.join('\n\n'));
     const links = getImportMapLinks(page.imports, pathOverrides);

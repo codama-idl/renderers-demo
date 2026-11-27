@@ -92,7 +92,7 @@ description: Overview of the Counter PDA
 
 ## See also
 
-- [CounterMode](../types/counterMode.md)`,
+- [CounterMode](../definedTypes/counterMode.md)`,
             f => addFragmentImports(f, 'generatedTypes', 'CounterMode'),
         ),
     );

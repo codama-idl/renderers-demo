@@ -20,21 +20,41 @@ import {
 
 import { addFragmentImports, Fragment, fragment, mergeFragments } from '../utils';
 
+/** A visitor that renders type nodes as TypeScript-like type definitions, e.g. `{ owner: Address; amount: Option<bytes> }`. */
 export type TypeVisitor = ReturnType<typeof getTypeVisitor>;
 
-// Here, we ignore the `transforms` of type nodes (e.g. size prefixes, fixed sizes, offsets or sentinels)
-// as well as the `count` of arrays, sets and maps. They affect how the data is encoded, not its shape.
+/** The maximum length of a type rendered on a single line. Longer types are rendered on multiple lines. */
+const MAX_LINE_LENGTH = 100;
+
+/**
+ * Creates a visitor that renders type nodes, as well as accounts, defined types and instructions,
+ * as TypeScript-like type definitions to display in code blocks.
+ *
+ * Composite types, such as structs, tuples and enums, render on a single line when they fit,
+ * and on multiple lines otherwise, indenting their children by `typeIndent`.
+ *
+ * Here, we ignore the `transforms` of type nodes (e.g. size prefixes, fixed sizes, offsets or sentinels)
+ * as well as the `count` of arrays, sets and maps. They affect how the data is encoded, not its shape.
+ *
+ * @param input.stack - The node stack to share with other visitors, so that errors report the full path of nodes.
+ * @param input.typeIndent - The indentation of nested lines. Defaults to four spaces.
+ *
+ * @example
+ * ```ts
+ * const type = visit(definedTypeNode({ identifier: 'owner', type: publicKeyTypeNode() }), getTypeVisitor());
+ * type.content; // "type Owner = Address"
+ * ```
+ */
 export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string } = {}) {
     const typeIndent = input.typeIndent ?? '    ';
     const stack = input.stack ?? new NodeStack();
 
-    // Keeps track of the indentation level.
-    let indentLevel = 0;
-    const indent = () => typeIndent.repeat(indentLevel);
-    const shouldInline = (fragment: Fragment) => {
-        if (fragment.content.includes('\n')) return false;
-        return indent().length + fragment.content.length <= 100;
-    };
+    // Helpers to lay out composite types on one line or, when they are too long, on multiple lines.
+    const fitsOnOneLine = (fragment: Fragment) =>
+        !fragment.content.includes('\n') && fragment.content.length <= MAX_LINE_LENGTH;
+    const indentLines = (content: string) => `${typeIndent}${content.replace(/\n/g, `\n${typeIndent}`)}`;
+    const renderOnMultipleLines = (children: Fragment[], open: string, separator: string, close: string) =>
+        mergeFragments(children, cs => `${open}\n${cs.map(c => indentLines(`${c}${separator}`)).join('\n')}\n${close}`);
 
     return pipe(
         // Every type node is rendered below, so this only throws for node kinds added by later versions of Codama.
@@ -97,41 +117,30 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                     if (isScalarEnum(node)) {
                         const variantNames = (node.variants ?? []).map(v => fragment`${pascalCase(v.identifier)}`);
                         const inlinedEnum = mergeFragments(variantNames, cs => `{ ${cs.join(', ')} }`);
-                        if (shouldInline(inlinedEnum)) return inlinedEnum;
-
-                        indentLevel++;
-                        const variants = mergeFragments(variantNames, cs => cs.map(c => `${indent()}${c},\n`).join(''));
-                        indentLevel--;
-                        return fragment`{\n${variants}${indent()}}`;
+                        if (fitsOnOneLine(inlinedEnum)) return inlinedEnum;
+                        return renderOnMultipleLines(variantNames, '{', ',', '}');
                     }
 
                     // Data enums are unions of their variants, e.g. `{ __kind: "Red" } | { __kind: "Rgb"; … }`.
-                    const inlinedEnum = pipe(
-                        (node.variants ?? []).map(v => visit(v, self)),
-                        fs => mergeFragments(fs, cs => cs.join(' | ')),
-                    );
-                    if (shouldInline(inlinedEnum)) return inlinedEnum;
+                    const variants = (node.variants ?? []).map(v => visit(v, self));
+                    const inlinedEnum = mergeFragments(variants, cs => cs.join(' | '));
+                    if (fitsOnOneLine(inlinedEnum)) return inlinedEnum;
 
-                    indentLevel++;
-                    const variants = pipe(
-                        (node.variants ?? []).map(v => visit(v, self)),
-                        fs => mergeFragments(fs, cs => cs.map(c => `| ${c}`).join(`\n${indent()}`)),
+                    // On multiple lines, each variant starts with a `|` and lines after the first are indented.
+                    return mergeFragments(variants, cs =>
+                        cs
+                            .map(c => `| ${c}`)
+                            .join('\n')
+                            .replace(/\n/g, `\n${typeIndent}`),
                     );
-                    indentLevel--;
-                    return variants;
                 },
 
                 visitEnumVariantType(node, { self }) {
                     const kindField = fragment`__kind: "${pascalCase(node.identifier)}"`;
-                    const getFields = () => [kindField, ...getEnumVariantDataFields(node.data, self)];
-
-                    const inlinedVariant = mergeFragments(getFields(), cs => `{ ${cs.join('; ')} }`);
-                    if (shouldInline(inlinedVariant)) return inlinedVariant;
-
-                    indentLevel++;
-                    const fields = mergeFragments(getFields(), cs => cs.map(c => `${indent()}${c};\n`).join(''));
-                    indentLevel--;
-                    return fragment`{\n${fields}${indent()}}`;
+                    const fields = [kindField, ...getEnumVariantDataFields(node.data, self)];
+                    const inlinedVariant = mergeFragments(fields, cs => `{ ${cs.join('; ')} }`);
+                    if (fitsOnOneLine(inlinedVariant)) return inlinedVariant;
+                    return renderOnMultipleLines(fields, '{', ';', '}');
                 },
 
                 visitFixedPointType(node, { self }) {
@@ -186,37 +195,18 @@ export function getTypeVisitor(input: { stack?: NodeStack; typeIndent?: string }
                 },
 
                 visitStructType(node, { self }) {
-                    if ((node.fields ?? []).length === 0) return fragment`{}`;
-
-                    const inlinedStruct = pipe(
-                        (node.fields ?? []).map(field => visit(field, self)),
-                        fs => mergeFragments(fs, cs => `{ ${cs.join('; ')} }`),
-                    );
-                    if (shouldInline(inlinedStruct)) return inlinedStruct;
-
-                    indentLevel++;
-                    const fields = pipe(
-                        (node.fields ?? []).map(field => visit(field, self)),
-                        fs => mergeFragments(fs, cs => cs.map(c => `${indent()}${c};\n`).join('')),
-                    );
-                    indentLevel--;
-                    return fragment`{\n${fields}${indent()}}`;
+                    const fields = (node.fields ?? []).map(field => visit(field, self));
+                    if (fields.length === 0) return fragment`{}`;
+                    const inlinedStruct = mergeFragments(fields, cs => `{ ${cs.join('; ')} }`);
+                    if (fitsOnOneLine(inlinedStruct)) return inlinedStruct;
+                    return renderOnMultipleLines(fields, '{', ';', '}');
                 },
 
                 visitTupleType(node, { self }) {
-                    const inlinedTuple = pipe(
-                        (node.items ?? []).map(item => visit(item, self)),
-                        fs => mergeFragments(fs, cs => `[${cs.join(', ')}]`),
-                    );
-                    if (shouldInline(inlinedTuple)) return inlinedTuple;
-
-                    indentLevel++;
-                    const items = pipe(
-                        (node.items ?? []).map(item => visit(item, self)),
-                        fs => mergeFragments(fs, cs => cs.map(c => `${indent()}${c},\n`).join('')),
-                    );
-                    indentLevel--;
-                    return fragment`[\n${items}${indent()}]`;
+                    const items = (node.items ?? []).map(item => visit(item, self));
+                    const inlinedTuple = mergeFragments(items, cs => `[${cs.join(', ')}]`);
+                    if (fitsOnOneLine(inlinedTuple)) return inlinedTuple;
+                    return renderOnMultipleLines(items, '[', ',', ']');
                 },
 
                 visitZeroableOptionType(node, { self }) {

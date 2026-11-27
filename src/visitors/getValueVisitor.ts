@@ -5,8 +5,23 @@ import { extendVisitor, NodeStack, pipe, recordNodeStackVisitor, staticVisitor, 
 
 import { addFragmentImports, Fragment, fragment, getStringValueAsHexadecimals, mergeFragments } from '../utils';
 
+/** A visitor that renders value nodes as TypeScript-like expressions, e.g. `[1, 2, 3]` or `Direction.Left`. */
 export type ValueVisitor = ReturnType<typeof getValueVisitor>;
 
+/**
+ * Creates a visitor that renders value nodes, such as the constant seeds of PDAs, as TypeScript-like expressions.
+ *
+ * Values that cannot be displayed in documentation, such as `injectedValueNode`, throw
+ * `CODAMA_ERROR__RENDERERS__UNSUPPORTED_NODE` with the path of the node.
+ *
+ * @param input.stack - The node stack to share with other visitors, so that errors report the full path of nodes.
+ *
+ * @example
+ * ```ts
+ * const value = visit(arrayValueNode([integerValueNode('1'), integerValueNode('2')]), getValueVisitor());
+ * value.content; // "[1, 2]"
+ * ```
+ */
 export function getValueVisitor(input: { stack?: NodeStack } = {}) {
     const stack = input.stack ?? new NodeStack();
 

@@ -7,6 +7,10 @@ import { Fragment, getTableFragment } from '../utils';
 import { TypeVisitor } from '../visitors/getTypeVisitor';
 import { ValueVisitor } from '../visitors/getValueVisitor';
 
+/**
+ * Renders a table of the seeds of a PDA. Variable seeds show their name and description,
+ * whereas constant seeds show their value. Returns `undefined` when the PDA has no seeds.
+ */
 export function getPdaSeedsFragment(
     seeds: PdaSeedNode[],
     typeVisitor: TypeVisitor,

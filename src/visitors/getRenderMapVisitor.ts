@@ -26,6 +26,19 @@ import { Fragment, RenderMapOptions } from '../utils';
 import { getTypeVisitor } from './getTypeVisitor';
 import { getValueVisitor } from './getValueVisitor';
 
+/**
+ * Creates a visitor that renders a Codama IDL as a map of Markdown pages, keyed by their path. It renders
+ * a page for the program and for each of its accounts, defined types, instructions and PDAs.
+ *
+ * @param options - The rendering options. See {@link RenderMapOptions}.
+ * @throws `CODAMA_ERROR__VERSION_MISMATCH` when the root node is not of the Codama v2 standard.
+ *
+ * @example
+ * ```ts
+ * const renderMap = visit(root, getRenderMapVisitor());
+ * renderMap.get('accounts/mint.md')?.content;
+ * ```
+ */
 export function getRenderMapVisitor(options: RenderMapOptions = {}) {
     const linkables = new LinkableDictionary();
     const stack = new NodeStack();

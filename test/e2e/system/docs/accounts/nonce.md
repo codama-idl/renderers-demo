@@ -21,5 +21,5 @@ This account has a fixed size of 80 bytes.
 
 ## See also
 
-- [NonceVersion](../types/nonceVersion.md)
-- [NonceState](../types/nonceState.md)
+- [NonceVersion](../definedTypes/nonceVersion.md)
+- [NonceState](../definedTypes/nonceState.md)

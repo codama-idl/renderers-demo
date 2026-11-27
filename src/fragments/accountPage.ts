@@ -13,6 +13,12 @@ import {
 import { TypeVisitor } from '../visitors/getTypeVisitor';
 import { getPdaFunctionUsageFragment } from './pdaFunctionUsage';
 
+/**
+ * Renders the page of an account, with the type of its data.
+ *
+ * @param size - The fixed size of the account in bytes, if any.
+ * @param pda - The PDA the account is derived from, if any.
+ */
 export function getAccountPageFragment(
     node: AccountNode,
     typeVisitor: TypeVisitor,

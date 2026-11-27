@@ -22,4 +22,4 @@ type SetAuthorityInstruction = { discriminator: number /* u8 */; authorityType: 
 
 ## See also
 
-- [AuthorityType](../types/authorityType.md)
+- [AuthorityType](../definedTypes/authorityType.md)
