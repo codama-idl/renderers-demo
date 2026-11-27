@@ -6,6 +6,7 @@ import { TypeVisitor } from '../visitors/getTypeVisitor';
 import { ValueVisitor } from '../visitors/getValueVisitor';
 import { getPdaSeedsFragment } from './pdaSeeds';
 
+/** Renders the page of a PDA, with a table of its seeds. */
 export function getPdaPageFragment(node: PdaNode, typeVisitor: TypeVisitor, valueVisitor: ValueVisitor): Fragment {
     const title = `${titleCase(node.identifier)} PDA`;
     const seeds = getPdaSeedsFragment(node.seeds ?? [], typeVisitor, valueVisitor);

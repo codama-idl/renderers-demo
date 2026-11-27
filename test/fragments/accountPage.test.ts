@@ -131,7 +131,7 @@ type Mint = { maxSupply: SomeType }
 
 ## See also
 
-- [SomeType](../types/someType.md)`,
+- [SomeType](../definedTypes/someType.md)`,
             f => addFragmentImports(f, 'generatedTypes', 'SomeType'),
         ),
     );

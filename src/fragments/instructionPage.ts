@@ -13,6 +13,7 @@ import {
 import { TypeVisitor } from '../visitors/getTypeVisitor';
 import { getInstructionAccountsFragment } from './instructionAccounts';
 
+/** Renders the page of an instruction, with a table of its accounts and the type of its data. */
 export function getInstructionPageFragment(node: InstructionNode, typeVisitor: TypeVisitor): Fragment {
     const title = titleCase(node.identifier);
     const type = visit(node, typeVisitor);

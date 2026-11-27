@@ -3,6 +3,10 @@ import { getTextNodeContent, InstructionAccountNode } from '@codama/nodes';
 
 import { Fragment, getTableFragment } from '../utils';
 
+/**
+ * Renders a table of the accounts of an instruction, telling whether they sign, are writable or are required.
+ * Returns `undefined` when the instruction has no accounts.
+ */
 export function getInstructionAccountsFragment(accounts: InstructionAccountNode[]): Fragment | undefined {
     if (accounts.length === 0) return;
 

@@ -119,7 +119,7 @@ type CreateAccountInstruction = { lamports: SomeType }
 
 ## See also
 
-- [SomeType](../types/someType.md)`,
+- [SomeType](../definedTypes/someType.md)`,
             f => addFragmentImports(f, 'generatedTypes', 'SomeType'),
         ),
     );
@@ -151,7 +151,7 @@ type CreateAccountInstruction = CreateAccountArgs
 
 ## See also
 
-- [CreateAccountArgs](../types/createAccountArgs.md)`,
+- [CreateAccountArgs](../definedTypes/createAccountArgs.md)`,
             f => addFragmentImports(f, 'generatedTypes', 'CreateAccountArgs'),
         ),
     );

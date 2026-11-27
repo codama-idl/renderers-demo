@@ -12,6 +12,10 @@ import {
 } from '../utils';
 import { getProgramErrorsFragment } from './programErrors';
 
+/**
+ * Renders the overview page of a program: its address and version, links to the pages of its accounts,
+ * instructions, PDAs and defined types, and a table of its errors.
+ */
 export function getProgramPageFragment(node: ProgramNode): Fragment {
     const title = `${titleCase(node.identifier)} Program`;
     const errors = getProgramErrorsFragment(node.errors ?? []);
@@ -38,13 +42,13 @@ export function getProgramPageFragment(node: ProgramNode): Fragment {
             generatedAccounts: 'accounts',
             generatedInstructions: 'instructions',
             generatedPdas: 'pdas',
-            generatedTypes: 'types',
+            generatedTypes: 'definedTypes',
         },
     );
 }
 
-function getLinksFragment(items: { identifier: string }[], folder: string, identifier?: string): Fragment {
-    if (items.length === 0) return fragment`_This program has no ${identifier ?? folder}._`;
+function getLinksFragment(items: { identifier: string }[], folder: string, label?: string): Fragment {
+    if (items.length === 0) return fragment`_This program has no ${label ?? folder}._`;
     const links = items.map(item => {
         const link = joinPath(folder, `${camelCase(item.identifier)}.md`);
         return fragment`- [${titleCase(item.identifier)}](${link})`;

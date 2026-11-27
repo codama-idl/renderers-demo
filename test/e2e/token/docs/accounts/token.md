@@ -24,4 +24,4 @@ This account has a fixed size of 165 bytes.
 
 ## See also
 
-- [AccountState](../types/accountState.md)
+- [AccountState](../definedTypes/accountState.md)

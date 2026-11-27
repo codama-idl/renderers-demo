@@ -8,6 +8,7 @@ import {
     ReadonlyUint8Array,
 } from '@solana/codecs';
 
+/** Encodes a string in the given encoding, e.g. `base58`, into bytes. */
 export function encodeStringValue(encoding: BytesEncoding, data: string): ReadonlyUint8Array {
     switch (encoding) {
         case 'utf8':
@@ -22,6 +23,9 @@ export function encodeStringValue(encoding: BytesEncoding, data: string): Readon
     }
 }
 
+/**
+ * Renders a string in the given encoding as hexadecimal bytes, e.g. `0x68656c6c6f` for `hello` in `utf8`.
+ */
 export function getStringValueAsHexadecimals(encoding: BytesEncoding, data: string): string {
     if (encoding === 'base16') return '0x' + data;
     return '0x' + getBase16Decoder().decode(encodeStringValue(encoding, data));

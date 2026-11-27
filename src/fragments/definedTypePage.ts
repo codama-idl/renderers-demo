@@ -12,6 +12,7 @@ import {
 } from '../utils';
 import { TypeVisitor } from '../visitors/getTypeVisitor';
 
+/** Renders the page of a defined type, with its type definition. */
 export function getDefinedTypePageFragment(node: DefinedTypeNode, typeVisitor: TypeVisitor): Fragment {
     const title = titleCase(node.identifier);
     const type = visit(node, typeVisitor);
