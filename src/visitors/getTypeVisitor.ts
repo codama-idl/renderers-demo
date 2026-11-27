@@ -23,7 +23,10 @@ import { addFragmentImports, Fragment, fragment, mergeFragments } from '../utils
 /** A visitor that renders type nodes as TypeScript-like type definitions, e.g. `{ owner: Address; amount: Option<bytes> }`. */
 export type TypeVisitor = ReturnType<typeof getTypeVisitor>;
 
-/** The maximum length of a type rendered on a single line. Longer types are rendered on multiple lines. */
+/**
+ * The maximum length of a type rendered on a single line, before its indentation and any field name.
+ * Longer types are rendered on multiple lines.
+ */
 const MAX_LINE_LENGTH = 100;
 
 /**
